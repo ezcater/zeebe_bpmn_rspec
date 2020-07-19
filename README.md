@@ -1,31 +1,61 @@
 # zeebe_bpmn_rspec
 
-Welcome to your new gem! In this directory, you'll find the files you need to be
-able to package up your Ruby library into a gem. Put your Ruby code in the file
-`lib/zeebe_bpmn_rspec`. To experiment with that code, run 
-`bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This gem provides support for testing BPMN files with the Zeebe workflow engine.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add this line to the test group in your application's Gemfile:
 
 ```ruby
-gem "zeebe_bpmn_rspec"
+group :test do
+  gem "zeebe_bpmn_rspec"
+end
 ```
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 Or install it yourself as:
 
     $ gem install zeebe_bpmn_rspec
 
+## Configuration
+
+Either the address for the Zeebe workflow engine or a Zeebe client must be configured:
+
+```ruby
+ZeebeBpmnRspec.configure do |config|
+  config.zeebe_address = "localhost:26500"
+  # -OR-
+  config.client = #<Zeebe::Client::GatewayProtocol::Gateway::Stub instance>
+end
+```
+
+If `zeebe_address` is not set then the environment variable `ZEEBE_ADDRESS` is also checked.
+
 ## Usage
 
-TODO: Write usage instructions here
+The gem adds the following method to RSpec.
+
+### Deploy Workflow
+
+The `deploy_workflow` requires a path to a BPMN file and deploys it to Zeebe. There is no support for
+removing a BPMN file once deployed, so this can be done once before the examples that use it.
+
+```ruby
+before(:all) { deploy_workflow(filepath) }
+```
+
+A custom name can also be specified for the workflow:
+
+```ruby
+before(:all) { deploy_workflow(filepath, "custom_name") }
+```
+
+### With Workflow Instance
+
+
 
 ## Development
 

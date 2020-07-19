@@ -1,0 +1,8 @@
+# Zeebe broker configuration file
+
+zeebe:
+  broker:
+    exporters:
+      hazelcast:
+        className: io.zeebe.hazelcast.exporter.HazelcastExporter
+        jarPath: exporters/zeebe-hazelcast-exporter.jar
