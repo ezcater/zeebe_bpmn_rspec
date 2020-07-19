@@ -81,6 +81,49 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do # rubocop:disable RSpec
         # Assert complete
         workflow_complete!
       end
+
+      context "when the caterer rejects" do
+        it "creates a liberty task and resets the caterer decision" do
+          # Task - notify customer
+          activate_job("send_communication").
+            expect_input(start_variables).
+            expect_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
+                           identity_key: "user_uuid",
+                           identity_type: "user").
+            and_complete(cust_response_decision_id: (decision_id = SecureRandom.uuid))
+
+          # Message - customer response
+          publish_message("decision_completed",
+                          correlation_key: decision_id,
+                          variables: { response: true })
+
+          # Task - notify cp
+          activate_job("send_communication").
+            expect_input(hash_including("cust_approved" => true, "contact_uuid" => contact_uuid)).
+            expect_headers(comm_name: "request_delivery_time_change_notify_cp_cust_approved",
+                           identity_key: "contact_uuid",
+                           identity_type: "contact").
+            and_complete(cp_response_decision_id: (decision_id = SecureRandom.uuid))
+
+          # Message - contact response
+          publish_message("decision_completed",
+                          correlation_key: decision_id,
+                          variables: { response: false })
+
+          # Task - create liberty task
+          activate_job("create_liberty_task").
+            expect_headers(context: "CP rejected change request",
+                           task_type: "REJECTED_REQUEST").
+            and_complete
+
+          # Task - reset decision
+          activate_job("reset_decision").
+            expect_headers(decision_id_key: "cp_response_decision_id").
+            and_complete
+
+          # workflow_complete!
+        end
+      end
     end
   end
 
