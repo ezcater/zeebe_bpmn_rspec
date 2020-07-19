@@ -27,7 +27,9 @@ module ZeebeBpmnRspec
                                                  ))
       @__workflow_instance_key = workflow.workflowInstanceKey
       yield(workflow.workflowInstanceKey)
-    rescue Exception => e
+    rescue Exception => e # rubocop:disable Lint/RescueException
+      # exceptions are rescued to ensure that instances are cancelled
+      # any error is re-raised below
       system_error = e
     ensure
       if workflow&.workflowInstanceKey
@@ -35,9 +37,10 @@ module ZeebeBpmnRspec
           client.cancel_workflow_instance(CancelWorkflowInstanceRequest.new(
                                             workflowInstanceKey: workflow.workflowInstanceKey
                                           ))
+        rescue GRPC::NotFound => _e
+          # expected
         rescue StandardError => _e
-          # TODO: log puts "Cancelled instance #{ex.inspect}"
-          nil
+          puts "Cancelled instance #{ex.inspect}" # TODO
         end
       end
       raise system_error if system_error
@@ -66,8 +69,8 @@ module ZeebeBpmnRspec
                                       type: type,
                                       worker: "#{type}-#{SecureRandom.hex}",
                                       maxJobsToActivate: 1,
-                                      timeout: 60000, # TODO: configure
-                                      requestTimeout: 60000
+                                      timeout: 5000, # TODO: configure
+                                      requestTimeout: 5000
                                     ))
 
       job = nil
@@ -84,7 +87,7 @@ module ZeebeBpmnRspec
                                {
                                  name: name,
                                  correlationKey: correlation_key,
-                                 timeToLive: 60000,
+                                 timeToLive: 5000,
                                  variables: variables&.to_json,
                                }.compact
                              ))

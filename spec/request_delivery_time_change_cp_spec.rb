@@ -2,7 +2,7 @@
 
 require "securerandom"
 
-RSpec.describe "request_delivery_time_change_cp BPMN" do
+RSpec.describe "request_delivery_time_change_cp BPMN" do # rubocop:disable RSpec/DescribeClass
   let(:cust_response_timeout) { "PT5S" }
   let(:cp_response_timeout) { "PT5S" }
   let(:user_uuid) { SecureRandom.uuid }
@@ -18,7 +18,7 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do
     }.stringify_keys!
   end
 
-  before(:all) do
+  before(:all) do # rubocop:disable RSpec/BeforeAfterAll
     path = File.join(__dir__, "fixtures/request_delivery_time_change_cp.bpmn")
     deploy_workflow(path)
   end
@@ -34,10 +34,10 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do
       it "processes the workflow (happy path)" do
         # Task - notify customer
         process_job("send_communication").
-          with(start_variables).
-          with_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
-                       identity_key: "user_uuid",
-                       identity_type: "user").
+          expect_input(start_variables).
+          expect_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
+                         identity_key: "user_uuid",
+                         identity_type: "user").
           and_complete(cust_response_decision_id: (decision_id = SecureRandom.uuid))
 
         # Message - customer response
@@ -47,10 +47,10 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do
 
         # Task - notify cp
         process_job("send_communication").
-          with(hash_including("cust_approved" => true, "contact_uuid" => contact_uuid)).
-          with_headers(comm_name: "request_delivery_time_change_notify_cp_cust_approved",
-                       identity_key: "contact_uuid",
-                       identity_type: "contact").
+          expect_input(hash_including("cust_approved" => true, "contact_uuid" => contact_uuid)).
+          expect_headers(comm_name: "request_delivery_time_change_notify_cp_cust_approved",
+                         identity_key: "contact_uuid",
+                         identity_type: "contact").
           and_complete(cp_response_decision_id: (decision_id = SecureRandom.uuid))
 
         # Message - contact response
@@ -60,18 +60,22 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do
 
         # Task - update order
         process_job("update_delivery_time").
-          with(hash_including("cp_approved" => true, "order_uuid" => order_uuid)).
-          with_headers({}).
+          expect_input(hash_including("cp_approved" => true, "order_uuid" => order_uuid)).
+          expect_headers({}).
           and_complete
 
         # Task - notify contact
         process_job("send_communication").
-          with_headers("comm_name" => "request_delivery_time_change_notify_cp_change_complete", "identity_key" => "contact_uuid", "identity_type" => "contact").
+          expect_headers(comm_name: "request_delivery_time_change_notify_cp_change_complete",
+                         identity_key: "contact_uuid",
+                         identity_type: "contact").
           and_complete
 
         # Task - notify customer
         process_job("send_communication").
-          with_headers("comm_name" => "request_delivery_time_change_notify_cust_change_complete", "identity_key" => "user_uuid", "identity_type" => "user").
+          expect_headers(comm_name: "request_delivery_time_change_notify_cust_change_complete",
+                         identity_key: "user_uuid",
+                         identity_type: "user").
           and_complete
 
         # Assert complete
@@ -84,10 +88,10 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do
     it "creates a liberty task and resets the decision" do
       # Task - notify customer
       process_job("send_communication").
-        with(start_variables).
-        with_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
-                     identity_key: "user_uuid",
-                     identity_type: "user").
+        expect_input(start_variables).
+        expect_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
+                       identity_key: "user_uuid",
+                       identity_type: "user").
         and_complete(cust_response_decision_id: (decision_id = SecureRandom.uuid))
 
       # Message - customer response
@@ -97,7 +101,7 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do
 
       # Task - create liberty task
       process_job("create_liberty_task").
-        with_headers({
+        expect_headers({
           context: "Customer rejected change request",
           task_type: "REJECTED_REQUEST",
         }).
@@ -105,7 +109,7 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do
 
       # Task - reset decision
       process_job("reset_decision").
-        with_headers(decision_id_key: "cust_response_decision_id").
+        expect_headers(decision_id_key: "cust_response_decision_id").
         and_complete
 
       # workflow_complete!
@@ -118,16 +122,16 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do
     it "creates a liberty task" do
       # Task - notify customer
       process_job("send_communication").
-        with(start_variables).
-        with_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
-                     identity_key: "user_uuid",
-                     identity_type: "user").
+        expect_input(start_variables).
+        expect_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
+                       identity_key: "user_uuid",
+                       identity_type: "user").
         and_complete(cust_response_decision_id: (_decision_id = SecureRandom.uuid))
 
       # Task - create liberty task
       process_job("create_liberty_task").
-        with_headers(context: "Timed out waiting for customer response",
-                     task_type: "NO_RESPONSE").and_complete
+        expect_headers(context: "Timed out waiting for customer response",
+                       task_type: "NO_RESPONSE").and_complete
 
       # workflow_complete!
     end

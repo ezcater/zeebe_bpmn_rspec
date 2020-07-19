@@ -5,6 +5,9 @@ require "active_support"
 require "active_support/core_ext/hash/keys"
 
 RSpec.describe ZeebeBpmnRspec::Helpers do
+  # TODO: remove once specs are complete!
+  # rubocop:disable RSpec/EmptyExampleGroup
+
   describe "deploy_workflow" do
     let(:path) { File.join(__dir__, "../fixtures/request_order_item_change_cp.bpmn") }
     let(:name) { File.basename(path, ".bpmn") }
@@ -12,8 +15,8 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
     it "deploys a workflow" do
       response = deploy_workflow(path)
 
-      workflow = response.workflows.find do |workflow|
-        workflow.resourceName == "#{name}.bpmn"
+      workflow = response.workflows.find do |wf|
+        wf.resourceName == "#{name}.bpmn"
       end
       expect(workflow).not_to be_nil
     end
@@ -24,8 +27,8 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
       it "deploys the workflow with that name" do
         response = deploy_workflow(path, name)
 
-        workflow = response.workflows.find do |workflow|
-          workflow.resourceName == "#{name}.bpmn"
+        workflow = response.workflows.find do |wf|
+          wf.resourceName == "#{name}.bpmn"
         end
         expect(workflow).not_to be_nil
       end
@@ -77,8 +80,8 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
 
       with_workflow_instance("request_order_item_change_cp", variables) do
         process_job("send_communication").
-          with(variables).
-          with_headers({
+          expect_input(variables).
+          expect_headers({
             comm_name: "request_order_item_change_notify_cust_of_request",
             identity_key: "user_uuid",
             identity_type: "user",
@@ -90,10 +93,10 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
                         variables: { response: :yes })
 
         process_job("create_liberty_task").
-          with_headers({
+          expect_headers({
             context: "...",
             task_type: "...",
-          }.stringify_keys!).
+          }).
           and_complete
       end
     end
@@ -106,22 +109,23 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
         user_uuid: user_uuid,
         request_id: request_id,
         cust_response_timeout: "PT1S",
-      }.stringify_keys!
+      }
 
       with_workflow_instance("request_order_item_change_cp", variables) do
         process_job("send_communication").
-          with(variables).
-          with_headers({
+          expect_input(variables).
+          expect_headers({
             comm_name: "request_order_item_change_notify_cust_of_request",
             identity_key: "user_uuid",
             identity_type: "user",
-          }.stringify_keys!).
+          }).
           and_complete
 
         process_job("create_liberty_task").
-          with_headers({ task_type: "NO_RESPONSE", context: "Timed out waiting for customer responses" }.stringify_keys!).
+          expect_headers(task_type: "NO_RESPONSE", context: "Timed out waiting for customer responses").
           and_complete
       end
     end
   end
+  # rubocop:enable RSpec/EmptyExampleGroup
 end

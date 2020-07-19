@@ -25,30 +25,27 @@ module ZeebeBpmnRspec
       end
     end
 
-    # alias as with_inputs()?
-    def with(data, headers: nil)
-      _job = job
+    def expect_input(data)
+      job_variables = job.variables
       data = data.stringify_keys if data.is_a?(Hash)
       context.instance_eval do
-        aggregate_failures do
-          expect(JSON.parse(_job.variables)).to match(data)
-          expect(JSON.parse(_job.customHeaders)).to match(headers.stringify_keys) if headers # TODO
-        end
+        expect(JSON.parse(job_variables)).to match(data)
       end
 
       self
     end
 
-    def with_headers(headers)
+    def expect_headers(headers)
       job_headers = job.customHeaders
+      headers = headers.stringify_keys if headers.is_a?(Hash)
       context.instance_eval do
-        expect(JSON.parse(job_headers)).to match(headers.stringify_keys) # TODO
+        expect(JSON.parse(job_headers)).to match(headers)
       end
 
       self
     end
 
-    def throw_error(error_code, message = nil)
+    def and_throw_error(error_code, message = nil)
       client.throw_error(ThrowErrorRequest.new(
                            {
                              jobKey: job.key,
@@ -56,8 +53,6 @@ module ZeebeBpmnRspec
                              errorMessage: message,
                            }.compact
                          ))
-
-      self
     end
 
     def and_fail(message = nil)
@@ -70,10 +65,10 @@ module ZeebeBpmnRspec
                       ))
     end
 
-    def and_complete(data = {})
+    def and_complete(variables = {})
       client.complete_job(CompleteJobRequest.new(
                             jobKey: job.key,
-                            variables: data.to_json
+                            variables: variables.to_json
                           ))
     end
   end
