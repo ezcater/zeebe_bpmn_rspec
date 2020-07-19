@@ -5,10 +5,10 @@ require "active_support/core_ext/hash/keys"
 require "json"
 
 module ZeebeBpmnRspec
-  class JobProcessor
+  class ActivatedJob
     include ::Zeebe::Client::GatewayProtocol # for direct reference of request classes
 
-    attr_accessor :job, :type, :workflow_instance_key, :client, :context
+    attr_reader :job, :type, :workflow_instance_key
 
     def initialize(job, type:, workflow_instance_key:, client:, context:)
       @job = job
@@ -25,21 +25,33 @@ module ZeebeBpmnRspec
       end
     end
 
+    def key
+      job.key
+    end
+
+    def variables
+      @_variables ||= JSON.parse(job.variables)
+    end
+
+    def headers
+      @_headers ||= JSON.parse(job.customHeaders)
+    end
+
     def expect_input(data)
-      job_variables = job.variables
+      job_variables = variables
       data = data.stringify_keys if data.is_a?(Hash)
       context.instance_eval do
-        expect(JSON.parse(job_variables)).to match(data)
+        expect(job_variables).to match(data)
       end
 
       self
     end
 
     def expect_headers(headers)
-      job_headers = job.customHeaders
+      job_headers = self.headers
       headers = headers.stringify_keys if headers.is_a?(Hash)
       context.instance_eval do
-        expect(JSON.parse(job_headers)).to match(headers)
+        expect(job_headers).to match(headers)
       end
 
       self
@@ -71,5 +83,9 @@ module ZeebeBpmnRspec
                             variables: variables.to_json
                           ))
     end
+
+    private
+
+    attr_reader :client, :context
   end
 end

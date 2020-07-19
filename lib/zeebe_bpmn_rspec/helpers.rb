@@ -1,30 +1,30 @@
 # frozen_string_literal: true
 
-require "zeebe_bpmn_rspec/job_processor"
+require "zeebe_bpmn_rspec/activated_job"
 
 module ZeebeBpmnRspec
-  module Helpers
+  module Helpers # rubocop:disable Metrics/ModuleLength
     include ::Zeebe::Client::GatewayProtocol # for direct reference of request classes
 
     def deploy_workflow(path, name = nil)
-      client.deploy_workflow(DeployWorkflowRequest.new(
-                               workflows: [WorkflowRequestObject.new(
-                                 name: (name && "#{name}.bpmn") || File.basename(path),
-                                 type: WorkflowRequestObject::ResourceType::FILE,
-                                 definition: File.read(path)
-                               )]
-                             ))
+      _zeebe_client.deploy_workflow(DeployWorkflowRequest.new(
+                                      workflows: [WorkflowRequestObject.new(
+                                        name: (name && "#{name}.bpmn") || File.basename(path),
+                                        type: WorkflowRequestObject::ResourceType::FILE,
+                                        definition: File.read(path)
+                                      )]
+                                    ))
     rescue StandardError => e
       raise "Failed to deploy workflow: #{e}"
     end
 
     def with_workflow_instance(name, variables = {})
       system_error = nil
-      workflow = client.create_workflow_instance(CreateWorkflowInstanceRequest.new(
-                                                   bpmnProcessId: name,
-                                                   version: -1, # always latest
-                                                   variables: variables.to_json
-                                                 ))
+      workflow = _zeebe_client.create_workflow_instance(CreateWorkflowInstanceRequest.new(
+                                                          bpmnProcessId: name,
+                                                          version: -1, # always latest
+                                                          variables: variables.to_json
+                                                        ))
       @__workflow_instance_key = workflow.workflowInstanceKey
       yield(workflow.workflowInstanceKey)
     rescue Exception => e # rubocop:disable Lint/RescueException
@@ -34,9 +34,9 @@ module ZeebeBpmnRspec
     ensure
       if workflow&.workflowInstanceKey
         begin
-          client.cancel_workflow_instance(CancelWorkflowInstanceRequest.new(
-                                            workflowInstanceKey: workflow.workflowInstanceKey
-                                          ))
+          _zeebe_client.cancel_workflow_instance(CancelWorkflowInstanceRequest.new(
+                                                   workflowInstanceKey: workflow.workflowInstanceKey
+                                                 ))
         rescue GRPC::NotFound => _e
           # expected
         rescue StandardError => _e
@@ -50,9 +50,9 @@ module ZeebeBpmnRspec
       error = nil
       sleep 0.25 # TODO: configurable?
       begin
-        client.cancel_workflow_instance(CancelWorkflowInstanceRequest.new(
-                                          workflowInstanceKey: workflow_instance_key
-                                        ))
+        _zeebe_client.cancel_workflow_instance(CancelWorkflowInstanceRequest.new(
+                                                 workflowInstanceKey: workflow_instance_key
+                                               ))
       rescue GRPC::NotFound => e
         error = e
       end
@@ -64,14 +64,14 @@ module ZeebeBpmnRspec
       @__workflow_instance_key
     end
 
-    def process_job(type)
-      stream = client.activate_jobs(ActivateJobsRequest.new(
-                                      type: type,
-                                      worker: "#{type}-#{SecureRandom.hex}",
-                                      maxJobsToActivate: 1,
-                                      timeout: 5000, # TODO: configure
-                                      requestTimeout: 5000
-                                    ))
+    def activate_job(type)
+      stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new(
+                                             type: type,
+                                             worker: "#{type}-#{SecureRandom.hex}",
+                                             maxJobsToActivate: 1,
+                                             timeout: 5000, # TODO: configure
+                                             requestTimeout: 5000
+                                           ))
 
       job = nil
       stream.find { |response| job = response.jobs.first }
@@ -79,18 +79,46 @@ module ZeebeBpmnRspec
 
       # puts job.inspect # support debug logging?
 
-      JobProcessor.new(job, type: type, workflow_instance_key: workflow_instance_key, client: client, context: self)
+      ActivatedJob.new(job,
+                       type: type,
+                       workflow_instance_key: workflow_instance_key,
+                       client: _zeebe_client,
+                       context: self)
+    end
+    alias process_job activate_job
+    # TODO: deprecate process_job
+
+    def activate_jobs(type, max_jobs: nil)
+      stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
+        type: type,
+        worker: "#{type}-#{SecureRandom.hex}",
+        maxJobsToActivate: max_jobs,
+        timeout: 5000, # TODO: configure
+        requestTimeout: 5000,
+      }.compact))
+
+      Enumerator.new do |yielder|
+        stream.each do |response|
+          response.jobs.each do |job|
+            yielder << ActivatedJob.new(job,
+                                        type: type,
+                                        workflow_instance_key: workflow_instance_key,
+                                        client: _zeebe_client,
+                                        context: self)
+          end
+        end
+      end
     end
 
     def publish_message(name, correlation_key:, variables: nil)
-      client.publish_message(PublishMessageRequest.new(
-                               {
-                                 name: name,
-                                 correlationKey: correlation_key,
-                                 timeToLive: 5000,
-                                 variables: variables&.to_json,
-                               }.compact
-                             ))
+      _zeebe_client.publish_message(PublishMessageRequest.new(
+                                      {
+                                        name: name,
+                                        correlationKey: correlation_key,
+                                        timeToLive: 5000,
+                                        variables: variables&.to_json,
+                                      }.compact
+                                    ))
     end
 
     def reset_zeebe!
@@ -99,7 +127,7 @@ module ZeebeBpmnRspec
 
     private
 
-    def client
+    def _zeebe_client
       ZeebeBpmnRspec.client
     end
   end

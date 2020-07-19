@@ -72,14 +72,14 @@ end
 
 ### Processing Jobs
 
-A single job can be processed for a workflow by calling `process_job`. `process_job` is called with a job
-type:
+A single job can be processed for a workflow by calling `activate_job` (previously `process_job`).
+`activate_job` is called with a job type:
 
 ```ruby
-process_job("my_job")
+activate_job("my_job")
 ```
 
-The call to `process_job` returns a `JobProcessor` object that provides a fluent interface to chain
+The call to `activate_job` returns a `ActivatedJob` object that provides a fluent interface to chain
 additional expectations and responses onto the job.
 
 #### Expect Input
@@ -87,7 +87,7 @@ additional expectations and responses onto the job.
 To check the input variables that are passed to the job add `.expect_input`:
 
 ```ruby
-process_job("my_job").
+activate_job("my_job").
   expect_input(user_id: 123)
 ```
 
@@ -95,7 +95,7 @@ Expect input uses RSpec expectations so it supports other RSpec helpers. For exa
 a partial match on the input:
 
 ```ruby
-process_job("my_job").
+activate_job("my_job").
   expect_input(hash_including("user_id" => 123))
 ```
 
@@ -107,11 +107,11 @@ coming from Zeebe.
 Similar to `expect_input`, expectations can be set on headers for the job using `.expect_headers`:
 
 ```ruby
-process_job("my_job").
+activate_job("my_job").
   expect_headers(content_type: "CREATE")
 
 # Combined with expect_input
-process_job("my_job").
+activate_job("my_job").
   expect_input(user_id: 123).
   expect_headers(content_type: "CREATE")
 ```
@@ -123,7 +123,7 @@ completed job.
 
 ```ruby
 # Completing a job can be changed with expectations
-process_job("my_job").
+activate_job("my_job").
   expect_input(user_id: 123).
   and_complete
 
@@ -138,12 +138,12 @@ Jobs can be failed by calling `and_fail`. An optional message can be specified w
 
 ```ruby
 # Failing a job can be chanined with expectations
-process_job("my_job").
+activate_job("my_job").
   expect_headers(id_type: "user").
   and_fail
 
 # Jobs can be failed with a message
-process_job("my_job").
+activate_job("my_job").
   and_fail("something didn't go right")
 ```
 
@@ -153,15 +153,19 @@ The `and_throw_error` method can be used to throw an error for a job. The error 
 optional message may be specified:
 
 ```ruby
-process_job("my_job").
+activate_job("my_job").
   expect_input(foo: "bar").
   and_throw_error("NOT_FOUND")
 
 # with message
-process_job("my_job").
+activate_job("my_job").
   expect_input(foo: "bar").
   and_throw_error("NOT_FOUND", "couldn't find a bar")
 ```
+
+#### Activating Multiple Jobs
+
+TODO
 
 ### Workflow Complete
 
@@ -199,9 +203,6 @@ publish_message("message_name", correlation_key: expected_value,
 The current gem and approach have some limitations:
 
 1. You can interact with only one workflow at a time.
-1. Jobs can only be processed one at a time. This may be an issue if the workflow has
-  parallel tasks for the same job type.
-  (So far I've observed that Zeebe is deterministic processing parallel branches.)
 
 ## Development
 

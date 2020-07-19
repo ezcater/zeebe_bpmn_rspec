@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
                       Rakefile)
 
   spec.files = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(/^(test|spec|features)\//)
+    f.match(/^(test|spec|features|compose)\//)
   end - excluded_files
   spec.bindir        = "bin"
   spec.executables   = []

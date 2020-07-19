@@ -82,47 +82,104 @@ RSpec.describe "request_delivery_time_change_cp BPMN" do # rubocop:disable RSpec
         workflow_complete!
       end
 
-      context "when the caterer rejects" do
-        it "creates a liberty task and resets the caterer decision" do
-          # Task - notify customer
-          activate_job("send_communication").
-            expect_input(start_variables).
-            expect_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
-                           identity_key: "user_uuid",
-                           identity_type: "user").
-            and_complete(cust_response_decision_id: (decision_id = SecureRandom.uuid))
+      it "happy path -- alternate" do
+        # Task - notify customer
+        process_job("send_communication").
+          expect_input(start_variables).
+          expect_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
+                         identity_key: "user_uuid",
+                         identity_type: "user").
+          and_complete(cust_response_decision_id: (decision_id = SecureRandom.uuid))
 
-          # Message - customer response
-          publish_message("decision_completed",
-                          correlation_key: decision_id,
-                          variables: { response: true })
+        # Message - customer response
+        publish_message("decision_completed",
+                        correlation_key: decision_id,
+                        variables: { response: true })
 
-          # Task - notify cp
-          activate_job("send_communication").
-            expect_input(hash_including("cust_approved" => true, "contact_uuid" => contact_uuid)).
-            expect_headers(comm_name: "request_delivery_time_change_notify_cp_cust_approved",
-                           identity_key: "contact_uuid",
-                           identity_type: "contact").
-            and_complete(cp_response_decision_id: (decision_id = SecureRandom.uuid))
+        # Task - notify cp
+        process_job("send_communication").
+          expect_input(hash_including("cust_approved" => true, "contact_uuid" => contact_uuid)).
+          expect_headers(comm_name: "request_delivery_time_change_notify_cp_cust_approved",
+                         identity_key: "contact_uuid",
+                         identity_type: "contact").
+          and_complete(cp_response_decision_id: (decision_id = SecureRandom.uuid))
 
-          # Message - contact response
-          publish_message("decision_completed",
-                          correlation_key: decision_id,
-                          variables: { response: false })
+        # Message - contact response
+        publish_message("decision_completed",
+                        correlation_key: decision_id,
+                        variables: { response: true })
 
-          # Task - create liberty task
-          activate_job("create_liberty_task").
-            expect_headers(context: "CP rejected change request",
-                           task_type: "REJECTED_REQUEST").
-            and_complete
+        # Task - update order
+        process_job("update_delivery_time").
+          expect_input(hash_including("cp_approved" => true, "order_uuid" => order_uuid)).
+          expect_headers({}).
+          and_complete
 
-          # Task - reset decision
-          activate_job("reset_decision").
-            expect_headers(decision_id_key: "cp_response_decision_id").
-            and_complete
+        # Tasks - 2 expect: customer and contact
+        jobs = activate_jobs("send_communication", max_jobs: 2).to_a
 
-          # workflow_complete!
-        end
+        contact_job = jobs.find { |job| job.headers["identity_type"] == "contact" }
+        user_job = jobs.find { |job| job.headers["identity_type"] == "user" }
+
+        # Task - notify contact
+        contact_job.
+          expect_headers(comm_name: "request_delivery_time_change_notify_cp_change_complete",
+                         identity_key: "contact_uuid",
+                         identity_type: "contact").
+          and_complete
+
+        # Task - notify customer
+        user_job.
+          expect_headers(comm_name: "request_delivery_time_change_notify_cust_change_complete",
+                         identity_key: "user_uuid",
+                         identity_type: "user").
+          and_complete
+
+        # Assert complete
+        workflow_complete!
+      end
+    end
+
+    context "when the caterer rejects" do
+      it "creates a liberty task and resets the caterer decision" do
+        # Task - notify customer
+        activate_job("send_communication").
+          expect_input(start_variables).
+          expect_headers(comm_name: "request_delivery_time_change_notify_cust_of_request",
+                         identity_key: "user_uuid",
+                         identity_type: "user").
+          and_complete(cust_response_decision_id: (decision_id = SecureRandom.uuid))
+
+        # Message - customer response
+        publish_message("decision_completed",
+                        correlation_key: decision_id,
+                        variables: { response: true })
+
+        # Task - notify cp
+        activate_job("send_communication").
+          expect_input(hash_including("cust_approved" => true, "contact_uuid" => contact_uuid)).
+          expect_headers(comm_name: "request_delivery_time_change_notify_cp_cust_approved",
+                         identity_key: "contact_uuid",
+                         identity_type: "contact").
+          and_complete(cp_response_decision_id: (decision_id = SecureRandom.uuid))
+
+        # Message - contact response
+        publish_message("decision_completed",
+                        correlation_key: decision_id,
+                        variables: { response: false })
+
+        # Task - create liberty task
+        activate_job("create_liberty_task").
+          expect_headers(context: "CP rejected change request",
+                         task_type: "REJECTED_REQUEST").
+          and_complete
+
+        # Task - reset decision
+        activate_job("reset_decision").
+          expect_headers(decision_id_key: "cp_response_decision_id").
+          and_complete
+
+        # workflow_complete!
       end
     end
   end
