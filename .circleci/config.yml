@@ -4,7 +4,10 @@ jobs:
     parallelism: 1
     working_directory: ~/ezcater
     docker:
-      - image: circleci/ruby:2.6.5
+      - image: circleci/ruby:2.6.6
+        environment:
+          - ZEEBE_ADDRESS: localhost:26500
+      - image: camunda/zeebe:0.23.2
     steps:
       - checkout
 
