@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1nd5s56" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Zeebe Modeler" exporterVersion="0.9.0">
+  <bpmn:process id="request_delivery_time_change_cp" name="Request Delivery Time Change (CP)" isExecutable="true">
+    <bpmn:startEvent id="start" name="CP Requests Change">
+      <bpmn:outgoing>Flow_0nwemcp</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="notify_cust_of_request" name="Notify Customer of Request">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="send_communication" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="comm_name" value="request_delivery_time_change_notify_cust_of_request" />
+          <zeebe:header key="identity_type" value="user" />
+          <zeebe:header key="identity_key" value="user_uuid" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0nwemcp</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ktud66</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0ktud66" sourceRef="notify_cust_of_request" targetRef="wait_for_cust_response" />
+    <bpmn:subProcess id="wait_for_cust_response" name="Wait for Customer Response">
+      <bpmn:incoming>Flow_0ktud66</bpmn:incoming>
+      <bpmn:incoming>Flow_1d6is4i</bpmn:incoming>
+      <bpmn:incoming>Flow_10iv0b3</bpmn:incoming>
+      <bpmn:outgoing>Flow_1jipcsv</bpmn:outgoing>
+      <bpmn:startEvent id="wait_for_cust_response_start">
+        <bpmn:outgoing>Flow_0g2ovo6</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:intermediateCatchEvent id="receive_cust_response" name="Received Customer Response">
+        <bpmn:extensionElements>
+          <zeebe:ioMapping>
+            <zeebe:output source="=response" target="cust_approved" />
+          </zeebe:ioMapping>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_0g2ovo6</bpmn:incoming>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_0w7fle3" messageRef="cust_response_message" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_0g2ovo6" sourceRef="wait_for_cust_response_start" targetRef="receive_cust_response" />
+    </bpmn:subProcess>
+    <bpmn:exclusiveGateway id="cust_approved_gateway" name="Customer approved change?" default="Flow_1l5u8x7">
+      <bpmn:incoming>Flow_1jipcsv</bpmn:incoming>
+      <bpmn:outgoing>Flow_1gevzp6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1l5u8x7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1jipcsv" sourceRef="wait_for_cust_response" targetRef="cust_approved_gateway" />
+    <bpmn:sequenceFlow id="Flow_0nwemcp" sourceRef="start" targetRef="notify_cust_of_request" />
+    <bpmn:boundaryEvent id="wait_for_cust_response_timer" name="Timeout" attachedToRef="wait_for_cust_response">
+      <bpmn:outgoing>Flow_1byq4ue</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0lfzvgc">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">= cust_response_timeout</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_1gevzp6" name="Yes" sourceRef="cust_approved_gateway" targetRef="notify_cp_cust_approved">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= cust_approved = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:subProcess id="wait_for_cp_response" name="Wait for CP Response">
+      <bpmn:incoming>Flow_02g3jfm</bpmn:incoming>
+      <bpmn:incoming>Flow_059i3w8</bpmn:incoming>
+      <bpmn:incoming>Flow_0apzf3j</bpmn:incoming>
+      <bpmn:outgoing>Flow_1sfqwfh</bpmn:outgoing>
+      <bpmn:startEvent id="wait_for_cp_confirm_start">
+        <bpmn:outgoing>Flow_0ty0ewn</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_0ty0ewn" sourceRef="wait_for_cp_confirm_start" targetRef="receive_cp_response" />
+      <bpmn:intermediateCatchEvent id="receive_cp_response" name="Received CP Response">
+        <bpmn:extensionElements>
+          <zeebe:ioMapping>
+            <zeebe:output source="=response" target="cp_approved" />
+          </zeebe:ioMapping>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_0ty0ewn</bpmn:incoming>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_0zrvp64" messageRef="cp_response_message" />
+      </bpmn:intermediateCatchEvent>
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_02g3jfm" sourceRef="notify_cp_cust_approved" targetRef="wait_for_cp_response" />
+    <bpmn:boundaryEvent id="wait_for_cp_response_timer" name="Timeout" attachedToRef="wait_for_cp_response">
+      <bpmn:outgoing>Flow_0c00ocd</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_00zwd8s">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">= cp_response_timeout</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="update_order_with_delivery_time" name="Update Order With New Delivery Time">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="update_delivery_time" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14inp2u</bpmn:incoming>
+      <bpmn:outgoing>Flow_1nfmi0g</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="cp_confirmed_gateway" name="CP confirmed change?" default="Flow_015sf7g">
+      <bpmn:incoming>Flow_1sfqwfh</bpmn:incoming>
+      <bpmn:outgoing>Flow_14inp2u</bpmn:outgoing>
+      <bpmn:outgoing>Flow_015sf7g</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1sfqwfh" sourceRef="wait_for_cp_response" targetRef="cp_confirmed_gateway" />
+    <bpmn:sequenceFlow id="Flow_14inp2u" name="Yes" sourceRef="cp_confirmed_gateway" targetRef="update_order_with_delivery_time">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= cp_approved = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="create_liberty_task_cust_timeout" name="Create Liberty Task">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="create_liberty_task" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="task_type" value="NO_RESPONSE" />
+          <zeebe:header key="context" value="Timed out waiting for customer response" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1byq4ue</bpmn:incoming>
+      <bpmn:outgoing>Flow_1d6is4i</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="end" name="Complete">
+      <bpmn:incoming>Flow_0w6a20e</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="notify_cp_cust_approved" name="Notify CP of Customer Approval">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="send_communication" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="comm_name" value="request_delivery_time_change_notify_cp_cust_approved" />
+          <zeebe:header key="identity_type" value="contact" />
+          <zeebe:header key="identity_key" value="contact_uuid" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1gevzp6</bpmn:incoming>
+      <bpmn:outgoing>Flow_02g3jfm</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1d6is4i" sourceRef="create_liberty_task_cust_timeout" targetRef="wait_for_cust_response" />
+    <bpmn:serviceTask id="create_liberty_task_cp_timeout" name="Create Liberty Task">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="create_liberty_task" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="task_type" value="NO_RESPONSE" />
+          <zeebe:header key="context" value="Timed out waiting for CP confirmation" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0c00ocd</bpmn:incoming>
+      <bpmn:outgoing>Flow_059i3w8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_059i3w8" sourceRef="create_liberty_task_cp_timeout" targetRef="wait_for_cp_response" />
+    <bpmn:sequenceFlow id="Flow_1l5u8x7" name="No" sourceRef="cust_approved_gateway" targetRef="create_liberty_task_cust_rejected" />
+    <bpmn:serviceTask id="create_liberty_task_cust_rejected" name="Create Liberty Task">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="create_liberty_task" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="task_type" value="REJECTED_REQUEST" />
+          <zeebe:header key="context" value="Customer rejected change request" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1l5u8x7</bpmn:incoming>
+      <bpmn:outgoing>Flow_06qfoi4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_015sf7g" name="No&#10;" sourceRef="cp_confirmed_gateway" targetRef="create_liberty_task_cp_rejected" />
+    <bpmn:serviceTask id="create_liberty_task_cp_rejected" name="Create Liberty Task">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="create_liberty_task" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="task_type" value="REJECTED_REQUEST" />
+          <zeebe:header key="context" value="CP rejected change request" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_015sf7g</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xslea6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1byq4ue" sourceRef="wait_for_cust_response_timer" targetRef="create_liberty_task_cust_timeout" />
+    <bpmn:sequenceFlow id="Flow_0c00ocd" sourceRef="wait_for_cp_response_timer" targetRef="create_liberty_task_cp_timeout" />
+    <bpmn:sequenceFlow id="Flow_06qfoi4" sourceRef="create_liberty_task_cust_rejected" targetRef="reset_decision_cust_rejected" />
+    <bpmn:sequenceFlow id="Flow_10iv0b3" sourceRef="reset_decision_cust_rejected" targetRef="wait_for_cust_response" />
+    <bpmn:sequenceFlow id="Flow_1xslea6" sourceRef="create_liberty_task_cp_rejected" targetRef="reset_decision_cp_rejected" />
+    <bpmn:sequenceFlow id="Flow_0apzf3j" sourceRef="reset_decision_cp_rejected" targetRef="wait_for_cp_response" />
+    <bpmn:sequenceFlow id="Flow_1nfmi0g" sourceRef="update_order_with_delivery_time" targetRef="notify_fork" />
+    <bpmn:parallelGateway id="notify_fork">
+      <bpmn:incoming>Flow_1nfmi0g</bpmn:incoming>
+      <bpmn:outgoing>Flow_05t1p8s</bpmn:outgoing>
+      <bpmn:outgoing>Flow_14e747q</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_05t1p8s" sourceRef="notify_fork" targetRef="notify_cust_change_complete" />
+    <bpmn:sequenceFlow id="Flow_14e747q" sourceRef="notify_fork" targetRef="notify_cp_change_complete" />
+    <bpmn:serviceTask id="notify_cust_change_complete" name="Notify Customer of Update">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="send_communication" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="comm_name" value="request_delivery_time_change_notify_cust_change_complete" />
+          <zeebe:header key="identity_type" value="user" />
+          <zeebe:header key="identity_key" value="user_uuid" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_05t1p8s</bpmn:incoming>
+      <bpmn:outgoing>Flow_15zpt5r</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="notify_cp_change_complete" name="Notify CP of Update">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="send_communication" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="comm_name" value="request_delivery_time_change_notify_cp_change_complete" />
+          <zeebe:header key="identity_type" value="contact" />
+          <zeebe:header key="identity_key" value="contact_uuid" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14e747q</bpmn:incoming>
+      <bpmn:outgoing>Flow_1vufeev</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="reset_decision_cp_rejected" name="Reset CP Decision Point">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="reset_decision" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="decision_id_key" value="cp_response_decision_id" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1xslea6</bpmn:incoming>
+      <bpmn:outgoing>Flow_0apzf3j</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="reset_decision_cust_rejected" name="Reset Customer Decision Point">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="reset_decision" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="decision_id_key" value="cust_response_decision_id" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_06qfoi4</bpmn:incoming>
+      <bpmn:outgoing>Flow_10iv0b3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1vufeev" sourceRef="notify_cp_change_complete" targetRef="notify_join" />
+    <bpmn:parallelGateway id="notify_join">
+      <bpmn:incoming>Flow_1vufeev</bpmn:incoming>
+      <bpmn:incoming>Flow_15zpt5r</bpmn:incoming>
+      <bpmn:outgoing>Flow_0w6a20e</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_15zpt5r" sourceRef="notify_cust_change_complete" targetRef="notify_join" />
+    <bpmn:sequenceFlow id="Flow_0w6a20e" sourceRef="notify_join" targetRef="end" />
+  </bpmn:process>
+  <bpmn:message id="cp_response_message" name="decision_completed">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="= cp_response_decision_id" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="cust_response_message" name="decision_completed">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="= cust_response_decision_id" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="request_delivery_time_change_cp">
+      <bpmndi:BPMNEdge id="Flow_0w6a20e_di" bpmnElement="Flow_0w6a20e">
+        <di:waypoint x="1775" y="310" />
+        <di:waypoint x="1812" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15zpt5r_di" bpmnElement="Flow_15zpt5r">
+        <di:waypoint x="1690" y="250" />
+        <di:waypoint x="1750" y="250" />
+        <di:waypoint x="1750" y="285" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1vufeev_di" bpmnElement="Flow_1vufeev">
+        <di:waypoint x="1690" y="370" />
+        <di:waypoint x="1750" y="370" />
+        <di:waypoint x="1750" y="335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14e747q_di" bpmnElement="Flow_14e747q">
+        <di:waypoint x="1530" y="335" />
+        <di:waypoint x="1530" y="370" />
+        <di:waypoint x="1590" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05t1p8s_di" bpmnElement="Flow_05t1p8s">
+        <di:waypoint x="1530" y="285" />
+        <di:waypoint x="1530" y="250" />
+        <di:waypoint x="1590" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1nfmi0g_di" bpmnElement="Flow_1nfmi0g">
+        <di:waypoint x="1460" y="310" />
+        <di:waypoint x="1505" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0apzf3j_di" bpmnElement="Flow_0apzf3j">
+        <di:waypoint x="1080" y="160" />
+        <di:waypoint x="1080" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xslea6_di" bpmnElement="Flow_1xslea6">
+        <di:waypoint x="1230" y="120" />
+        <di:waypoint x="1130" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10iv0b3_di" bpmnElement="Flow_10iv0b3">
+        <di:waypoint x="530" y="160" />
+        <di:waypoint x="530" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06qfoi4_di" bpmnElement="Flow_06qfoi4">
+        <di:waypoint x="680" y="120" />
+        <di:waypoint x="580" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0c00ocd_di" bpmnElement="Flow_0c00ocd">
+        <di:waypoint x="1160" y="428" />
+        <di:waypoint x="1160" y="500" />
+        <di:waypoint x="1130" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1byq4ue_di" bpmnElement="Flow_1byq4ue">
+        <di:waypoint x="610" y="428" />
+        <di:waypoint x="610" y="500" />
+        <di:waypoint x="580" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_015sf7g_di" bpmnElement="Flow_015sf7g">
+        <di:waypoint x="1280" y="285" />
+        <di:waypoint x="1280" y="160" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1296" y="250" width="15" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1l5u8x7_di" bpmnElement="Flow_1l5u8x7">
+        <di:waypoint x="730" y="285" />
+        <di:waypoint x="730" y="160" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="738" y="250" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_059i3w8_di" bpmnElement="Flow_059i3w8">
+        <di:waypoint x="1030" y="500" />
+        <di:waypoint x="1000" y="500" />
+        <di:waypoint x="1000" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1d6is4i_di" bpmnElement="Flow_1d6is4i">
+        <di:waypoint x="480" y="500" />
+        <di:waypoint x="450" y="500" />
+        <di:waypoint x="450" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14inp2u_di" bpmnElement="Flow_14inp2u">
+        <di:waypoint x="1305" y="310" />
+        <di:waypoint x="1360" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1306" y="292" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1sfqwfh_di" bpmnElement="Flow_1sfqwfh">
+        <di:waypoint x="1190" y="310" />
+        <di:waypoint x="1255" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02g3jfm_di" bpmnElement="Flow_02g3jfm">
+        <di:waypoint x="910" y="310" />
+        <di:waypoint x="970" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gevzp6_di" bpmnElement="Flow_1gevzp6">
+        <di:waypoint x="755" y="310" />
+        <di:waypoint x="810" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="758" y="292" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nwemcp_di" bpmnElement="Flow_0nwemcp">
+        <di:waypoint x="218" y="310" />
+        <di:waypoint x="270" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1jipcsv_di" bpmnElement="Flow_1jipcsv">
+        <di:waypoint x="640" y="310" />
+        <di:waypoint x="705" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ktud66_di" bpmnElement="Flow_0ktud66">
+        <di:waypoint x="370" y="310" />
+        <di:waypoint x="420" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="start">
+        <dc:Bounds x="182" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="167" y="338" width="65" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_04ehn59_di" bpmnElement="notify_cust_of_request">
+        <dc:Bounds x="270" y="270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1b27br0_di" bpmnElement="wait_for_cust_response" isExpanded="true">
+        <dc:Bounds x="420" y="210" width="220" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0g2ovo6_di" bpmnElement="Flow_0g2ovo6">
+        <di:waypoint x="496" y="310" />
+        <di:waypoint x="562" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_19p6c1t_di" bpmnElement="wait_for_cust_response_start">
+        <dc:Bounds x="460" y="292" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1x6ybjt_di" bpmnElement="receive_cust_response">
+        <dc:Bounds x="562" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="555" y="249" width="50" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_14n60p7_di" bpmnElement="cust_approved_gateway" isMarkerVisible="true">
+        <dc:Bounds x="705" y="285" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="706" y="340" width="48" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_149igl0_di" bpmnElement="wait_for_cp_response" isExpanded="true">
+        <dc:Bounds x="970" y="210" width="220" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0ty0ewn_di" bpmnElement="Flow_0ty0ewn">
+        <di:waypoint x="1046" y="310" />
+        <di:waypoint x="1112" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1spc3pv_di" bpmnElement="wait_for_cp_confirm_start">
+        <dc:Bounds x="1010" y="292" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0vh7pn2_di" bpmnElement="receive_cp_response">
+        <dc:Bounds x="1112" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1097" y="255" width="65" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_085at1i_di" bpmnElement="update_order_with_delivery_time">
+        <dc:Bounds x="1360" y="270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0847sxs_di" bpmnElement="cp_confirmed_gateway" isMarkerVisible="true">
+        <dc:Bounds x="1255" y="285" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1246" y="338" width="67" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0oojl9x_di" bpmnElement="create_liberty_task_cust_timeout">
+        <dc:Bounds x="480" y="460" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1uiyvzj_di" bpmnElement="end">
+        <dc:Bounds x="1812" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1806" y="333" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_142hohw_di" bpmnElement="notify_cp_cust_approved">
+        <dc:Bounds x="810" y="270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1rstysb_di" bpmnElement="create_liberty_task_cp_timeout">
+        <dc:Bounds x="1030" y="460" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1g4wnrw_di" bpmnElement="create_liberty_task_cust_rejected">
+        <dc:Bounds x="680" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1b9qo0b_di" bpmnElement="create_liberty_task_cp_rejected">
+        <dc:Bounds x="1230" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1ruqkz5_di" bpmnElement="notify_fork">
+        <dc:Bounds x="1505" y="285" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_067aez2_di" bpmnElement="notify_cust_change_complete">
+        <dc:Bounds x="1590" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0eem64a_di" bpmnElement="notify_cp_change_complete">
+        <dc:Bounds x="1590" y="330" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1p5ursc_di" bpmnElement="reset_decision_cp_rejected">
+        <dc:Bounds x="1030" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_09j3ezu_di" bpmnElement="reset_decision_cust_rejected">
+        <dc:Bounds x="480" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_106jobd_di" bpmnElement="notify_join">
+        <dc:Bounds x="1725" y="285" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14p4qgt_di" bpmnElement="wait_for_cp_response_timer">
+        <dc:Bounds x="1142" y="392" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1180" y="423" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0jzsptp_di" bpmnElement="wait_for_cust_response_timer">
+        <dc:Bounds x="592" y="392" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="630" y="423" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
