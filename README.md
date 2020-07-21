@@ -206,11 +206,27 @@ The current gem and approach have some limitations:
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then,
-run `rake spec` to run the tests. You can also run `bin/console` for an
-interactive prompt that will allow you to experiment.
+This repo contains a docker-compose file that starts Zeebe and can be used for
+local development. Docker and Docker Compose most be installed as prerequisites.
+
+Run the following to start a bash session. Gems will automatically be bundled and
+the environment will have access to a running Zeebe broker:
+
+```bash
+docker-compose run --rm console bash
+```
+
+To run specs using docker-compose run the following command:
+
+```bash
+docker-compose run --rm console rspec
+```
+
+### Install Locally
 
 To install this gem onto your local machine, run `bundle exec rake install`. 
+
+### Create a Release
 
 To release a new version, update the version number in `version.rb`, and then
 run `bundle exec rake release`, which will create a git tag for the version,

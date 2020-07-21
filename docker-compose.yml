@@ -8,29 +8,24 @@ x-environment: &default-environment
   BUNDLE_DISABLE_SHARED_GEMS: "true"
   ZEEBE_ADDRESS: zeebe-bpmn-gateway:26500
 x-service: &default-service
-  build:
-    context: .
+  image: ruby:2.6.6
   volumes:
     - .:/usr/src/gem
+    - ./compose/entrypoint.sh:/tmp/entrypoint.sh
     - bundle-volume:/usr/local/bundle:delegated
     - shared-volume:/usr/src/shared:delegated
   tty: true
   stdin_open: true
 services:
-  zeebe-bpmn-gateway:
-    container_name: zeebe-bpmn-gateway_1
+  zeebe:
     image: camunda/zeebe:0.23.2
-    ports:
-      - "26500:26500"
-      - "9600:9600"
     environment:
       ZEEBE_LOG_LEVEL: debug
     volumes:
       - ./compose/zeebe-hazelcast-exporter.jar:/usr/local/zeebe/exporters/zeebe-hazelcast-exporter.jar
       - ./compose/application.yml:/usr/local/zeebe/config/application.yaml
 
-  zeebe-bpmn-monitor:
-    container_name: zeebe-bpmn-monitor_1
+  monitor:
     image: camunda/zeebe-simple-monitor:0.19.0
     environment:
       - zeebe.client.broker.contactPoint=zeebe-bpmn-gateway:26500
@@ -38,13 +33,14 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - zeebe-bpmn-gateway
+      - zeebe
 
-  zeebe-bpmn-console:
+  console:
     <<: *default-service
-    container_name: zeebe-bpmn-console_1
     environment:
       <<: *default-environment
+    entrypoint: /tmp/entrypoint.sh
     command: bash
+    working_dir: /usr/src/gem
     depends_on:
-      - zeebe-bpmn-gateway
+      - zeebe
