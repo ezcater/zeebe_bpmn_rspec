@@ -6,7 +6,7 @@ x-environment: &default-environment
   PRYRC: /usr/src/app/.docker-pryrc
   BUNDLE_IGNORE_CONFIG: 1
   BUNDLE_DISABLE_SHARED_GEMS: "true"
-  ZEEBE_ADDRESS: zeebe-bpmn-gateway:26500
+  ZEEBE_ADDRESS: zeebe:26500
 x-service: &default-service
   image: ruby:2.6.6
   volumes:
@@ -18,7 +18,7 @@ x-service: &default-service
   stdin_open: true
 services:
   zeebe:
-    image: camunda/zeebe:0.23.2
+    image: camunda/zeebe:0.23.4
     environment:
       ZEEBE_LOG_LEVEL: debug
     volumes:
@@ -28,8 +28,8 @@ services:
   monitor:
     image: camunda/zeebe-simple-monitor:0.19.0
     environment:
-      - zeebe.client.broker.contactPoint=zeebe-bpmn-gateway:26500
-      - zeebe.client.worker.hazelcast.connection=zeebe-bpmn-gateway:5701
+      - zeebe.client.broker.contactPoint=zeebe:26500
+      - zeebe.client.worker.hazelcast.connection=zeebe:5701
     ports:
       - "8082:8082"
     depends_on:
