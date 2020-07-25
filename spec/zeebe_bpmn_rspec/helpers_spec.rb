@@ -5,18 +5,20 @@ require "active_support"
 require "active_support/core_ext/hash/keys"
 
 RSpec.describe ZeebeBpmnRspec::Helpers do
-  # TODO: remove once specs are complete!
-  # rubocop:disable RSpec/EmptyExampleGroup
+  let(:path) { File.join(__dir__, "../fixtures/#{bpmn_name}.bpmn") }
+  let(:bpmn_name) { "one_task" }
+  let(:deploy) { true }
 
-  describe "deploy_workflow" do
-    let(:path) { File.join(__dir__, "../fixtures/request_order_item_change_cp.bpmn") }
-    let(:name) { File.basename(path, ".bpmn") }
+  before { deploy_workflow(path) if deploy }
 
-    it "deploys a workflow" do
+  describe "#deploy_workflow" do
+    let(:deploy) { false }
+
+    it "can deploy a workflow" do
       response = deploy_workflow(path)
 
       workflow = response.workflows.find do |wf|
-        wf.resourceName == "#{name}.bpmn"
+        wf.resourceName == "#{bpmn_name}.bpmn"
       end
       expect(workflow).not_to be_nil
     end
@@ -36,15 +38,9 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
   end
 
   describe "#with_workflow_instance" do
-    let(:path) { File.join(__dir__, "../fixtures/request_order_item_change_cp.bpmn") }
-
-    before do
-      deploy_workflow(path)
-    end
-
-    it "creates a workflow instance and yields the key" do
+    it "can run a workflow instance" do
       key = nil
-      with_workflow_instance("request_order_item_change_cp") do |workflow_instance_key|
+      with_workflow_instance("one_task") do |workflow_instance_key|
         key = workflow_instance_key
       end
 
@@ -52,80 +48,144 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
     end
   end
 
-  describe "#publish_message" do
-    # TODO
-  end
-
   describe "#workflow_complete!" do
-    # TODO
-  end
+    it "can assert that a workflow is complete" do
+      with_workflow_instance("one_task") do
+        activate_job("do_something").and_complete
 
-  describe "#process_job" do
-    let(:path) { File.join(__dir__, "../fixtures/request_order_item_change_cp.bpmn") }
-    let(:cust_response_timeout) { "PT60S" }
-
-    before do
-      deploy_workflow(path)
-    end
-
-    it "processes a job" do
-      user_uuid = SecureRandom.uuid
-      request_id = SecureRandom.uuid
-
-      variables = {
-        user_uuid: user_uuid,
-        request_id: request_id,
-        cust_response_timeout: cust_response_timeout,
-      }.stringify_keys!
-
-      with_workflow_instance("request_order_item_change_cp", variables) do
-        process_job("send_communication").
-          expect_input(variables).
-          expect_headers({
-            comm_name: "request_order_item_change_notify_cust_of_request",
-            identity_key: "user_uuid",
-            identity_type: "user",
-          }.stringify_keys!).
-          and_complete
-
-        publish_message("all_decisions_completed",
-                        correlation_key: request_id,
-                        variables: { response: :yes })
-
-        process_job("create_liberty_task").
-          expect_headers({
-            context: "...",
-            task_type: "...",
-          }).
-          and_complete
-      end
-    end
-
-    it "processes a job with a timeout" do
-      user_uuid = SecureRandom.uuid
-      request_id = SecureRandom.uuid
-
-      variables = {
-        user_uuid: user_uuid,
-        request_id: request_id,
-        cust_response_timeout: "PT1S",
-      }
-
-      with_workflow_instance("request_order_item_change_cp", variables) do
-        process_job("send_communication").
-          expect_input(variables).
-          expect_headers({
-            comm_name: "request_order_item_change_notify_cust_of_request",
-            identity_key: "user_uuid",
-            identity_type: "user",
-          }).
-          and_complete
-
-        process_job("create_liberty_task").
-          expect_headers(task_type: "NO_RESPONSE", context: "Timed out waiting for customer responses").
-          and_complete
+        workflow_complete!
       end
     end
   end
-  # rubocop:enable RSpec/EmptyExampleGroup
+
+  describe "#activate_job" do
+    it "can activate a job" do
+      with_workflow_instance("one_task", { input: 1 }) do
+        job = activate_job("do_something")
+
+        expect(job.variables).to eq("input" => 1)
+        expect(job.headers).to eq("what_to_do" => "nothing")
+      end
+    end
+  end
+
+  describe "ActivatedJob#expect_input" do
+    it "can check the variables for a job" do
+      with_workflow_instance("one_task", { a: 99, b: "c" }) do
+        activate_job("do_something").expect_input(a: 99, b: "c")
+      end
+    end
+  end
+
+  describe "ActivatedJob#expect_headers" do
+    it "can check the headers for a job" do
+      with_workflow_instance("one_task", { a: 99, b: "c" }) do
+        activate_job("do_something").expect_headers(what_to_do: "nothing")
+      end
+    end
+  end
+
+  describe "ActivatedJob#and_complete" do
+    it "can complete a job" do
+      with_workflow_instance("one_task") do
+        activate_job("do_something").and_complete
+
+        workflow_complete!
+      end
+    end
+
+    context "when new variables are specified" do
+      let(:bpmn_name) { :two_tasks }
+
+      it "can complete a job with new variables" do
+        with_workflow_instance("two_tasks") do
+          activate_job("do_something").
+            and_complete(return: (value = SecureRandom.hex))
+
+          activate_job("next_step").
+            expect_input(return: value)
+        end
+      end
+    end
+  end
+
+  describe "ActivatedJob#and_fail" do
+    it "can fail a job" do
+      with_workflow_instance("one_task") do
+        activate_job("do_something").
+          and_fail(retries: 1)
+
+        activate_job("do_something").and_complete
+
+        workflow_complete!
+      end
+    end
+
+    it "can fail a job with a message" do
+      with_workflow_instance("one_task") do
+        activate_job("do_something").
+          and_fail("foobar", retries: 1)
+
+        activate_job("do_something").and_complete
+
+        workflow_complete!
+      end
+    end
+  end
+
+  describe "ActivatedJob#and_throw_error" do
+    it "can throw an error for a job" do
+      with_workflow_instance("one_task") do
+        job = activate_job("do_something")
+
+        job.throw_error("ERROR_BOOM")
+
+        # should fail since there was already an error
+        expect do
+          job.fail("boo!")
+        end.to raise_error(/in state 'ERROR_THROWN'/)
+      end
+    end
+
+    it "can throw an error for a job with an error message" do
+      with_workflow_instance("one_task") do
+        activate_job("do_something").
+          and_throw_error("ERROR_BOOM", "chickaboom")
+      end
+    end
+  end
+
+  describe "#activate_jobs" do
+    let(:bpmn_name) { "parallel_tasks" }
+
+    it "can activate multiple jobs" do
+      with_workflow_instance("parallel_tasks") do
+        activate_job("do_something").and_complete
+
+        jobs = activate_jobs("parallel", max_jobs: 2).to_a
+
+        job_one = jobs.find { |job| job.headers["branch"] == "one" }
+        job_two = jobs.find { |job| job.headers["branch"] == "two" }
+
+        expect(job_one).not_to be nil
+        expect(job_two).not_to be nil
+
+        jobs.map(&:complete)
+
+        workflow_complete!
+      end
+    end
+  end
+
+  describe "#publish_message" do
+    let(:bpmn_name) { :message_receive }
+
+    it "can publish a message" do
+      with_workflow_instance("message_receive", expected_message_key: (key = SecureRandom.uuid)) do
+        publish_message("expected_message", correlation_key: key)
+
+        workflow_complete!
+      end
+    end
+  end
 end
