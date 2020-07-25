@@ -1,0 +1,52 @@
+version: "3.4"
+
+services:
+  # append to existing zeebe service:
+  zeebe:
+    depends_on:
+      - kafka
+    restart: always
+    environment:
+      SPRING_CONFIG_ADDITIONAL_LOCATION: /usr/local/zeebe/config/exporter.yml
+      ZEEBE_BROKER_EXPORTERS_KAFKA_ARGS_PRODUCER_SERVERS: "kafka:9092"
+    volumes:
+      - ./compose/exporter.yml:/usr/local/zeebe/config/exporter.yml
+      - ./compose/zeebe-kafka-exporter-jar-with-dependencies.jar:/usr/local/zeebe/lib/zeebe-kafka-exporter.jar
+  
+#  consumer:
+#    image: edenhill/kafkacat:${KAFKACAT_VERSION:-1.5.0}
+#    container_name: consumer
+#    hostname: consumer
+#    depends_on:
+#      - kafka
+#    restart: always
+#    command: [ "kafkacat", "-b", "kafka:9092", "-C", "-J", "-X", "metadata.max.age.ms=1000", "-X", "topic.metadata.refresh.interval.ms=1000", "-G", "zeebe", "^zeebe.*$$" ]
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:${KAFKA_VERSION:-5.5.1}
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    restart: always
+
+  kafka:
+    image: confluentinc/cp-kafka:${KAFKA_VERSION:-5.5.1}
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - '29092:29092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:29092
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: always
