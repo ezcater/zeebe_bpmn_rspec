@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1yau9it" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Zeebe Modeler" exporterVersion="0.9.1">
+  <bpmn:process id="one_task" name="One Task" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_17x5tmm</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="do_something" name="Do Something">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="do_something" retries="2" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="what_to_do" value="nothing" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_17x5tmm</bpmn:incoming>
+      <bpmn:outgoing>Flow_1qynmar</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_17x5tmm" sourceRef="StartEvent_1" targetRef="do_something" />
+    <bpmn:endEvent id="Event_0xn9yhs">
+      <bpmn:incoming>Flow_1qynmar</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1qynmar" sourceRef="do_something" targetRef="Event_0xn9yhs" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="one_task">
+      <bpmndi:BPMNEdge id="Flow_17x5tmm_di" bpmnElement="Flow_17x5tmm">
+        <di:waypoint x="215" y="120" />
+        <di:waypoint x="290" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qynmar_di" bpmnElement="Flow_1qynmar">
+        <di:waypoint x="390" y="120" />
+        <di:waypoint x="452" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1br3p0f_di" bpmnElement="do_something">
+        <dc:Bounds x="290" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0w4i2vd_di" bpmnElement="Event_0xn9yhs">
+        <dc:Bounds x="452" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

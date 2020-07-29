@@ -66,16 +66,18 @@ module ZeebeBpmnRspec
                            }.compact
                          ))
     end
+    alias throw_error and_throw_error
 
-    def and_fail(message = nil)
+    def and_fail(message = nil, retries: nil)
       client.fail_job(FailJobRequest.new(
                         {
                           jobKey: job.key,
-                          retries: 0,
+                          retries: retries || 0,
                           errorMessage: message,
                         }.compact
                       ))
     end
+    alias fail and_fail
 
     def and_complete(variables = {})
       client.complete_job(CompleteJobRequest.new(
@@ -83,6 +85,7 @@ module ZeebeBpmnRspec
                             variables: variables.to_json
                           ))
     end
+    alias complete and_complete
 
     private
 

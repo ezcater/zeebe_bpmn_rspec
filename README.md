@@ -118,7 +118,7 @@ activate_job("my_job").
 
 #### Complete Job
 
-Jobs can be completed by calling `and_complete`. Variables can optionally be returned with the
+Jobs can be completed by calling `and_complete` (also aliased as `complete`). Variables can optionally be returned with the
 completed job.
 
 ```ruby
@@ -134,7 +134,7 @@ project_job("my_job").
 
 #### Fail Job
 
-Jobs can be failed by calling `and_fail`. An optional message can be specified when failing a job.
+Jobs can be failed by calling `and_fail` (also aliased as `fail`). An optional message can be specified when failing a job.
 
 ```ruby
 # Failing a job can be chanined with expectations
@@ -147,9 +147,17 @@ activate_job("my_job").
   and_fail("something didn't go right")
 ```
 
+By default retries are set to zero when a job is failed but the remaining retries can optionally be specified:
+
+```ruby
+job = activate_job("my_job")
+
+job.fail(retries: 1)
+```
+
 #### Throw Error
 
-The `and_throw_error` method can be used to throw an error for a job. The error code is required and an
+The `and_throw_error` (also aliased as `throw_error`) method can be used to throw an error for a job. The error code is required and an
 optional message may be specified:
 
 ```ruby
@@ -165,7 +173,18 @@ activate_job("my_job").
 
 #### Activating Multiple Jobs
 
-TODO
+Multiple jobs can be activated using the `activate_jobs` method.
+
+```ruby
+activate_jobs("my_job")
+```
+
+The call to `activate_jobs` returns an Enumerator that returns `ActivatedJob` instance.
+The maximum number of jobs to return can be specified:
+
+```ruby
+jobs = activate_jobs("my_job", max_jobs: 2).to_a
+```
 
 ### Workflow Complete
 
@@ -197,6 +216,18 @@ Variables can also be sent with a message:
 publish_message("message_name", correlation_key: expected_value,
                 variables: { foo: "bar" })
 ```
+
+## Tips & Tricks
+
+### Enumerator for Multiple Jobs
+
+When activating multiple jobs, call `to_a` on the result of `activate_jobs` to get
+an array of activated jobs objects.
+
+### Timer Duration
+
+Specify timer durations using a variable so that tests can easily set the variable
+to specify a short duration.
 
 ## Limitations
 
