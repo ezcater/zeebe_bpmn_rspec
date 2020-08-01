@@ -4,6 +4,7 @@ require "rspec"
 require "zeebe/client"
 require "zeebe_bpmn_rspec/helpers"
 require "zeebe_bpmn_rspec/version"
+require "zeebe_bpmn_rspec/be_activated_matcher"
 
 # Top-level gem module
 module ZeebeBpmnRspec

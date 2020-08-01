@@ -88,6 +88,17 @@ module ZeebeBpmnRspec
     alias process_job activate_job
     # TODO: deprecate process_job
 
+    # TODO: better way to handle this!
+    def job_with_type(type)
+      activate_job(type)
+    rescue StandardError => e
+      if e.message.match?(/^No job with type/)
+        nil
+      else
+        raise
+      end
+    end
+
     def activate_jobs(type, max_jobs: nil)
       stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
         type: type,
