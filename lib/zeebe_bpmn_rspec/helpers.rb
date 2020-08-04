@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "zeebe_bpmn_rspec/activated_job"
+require "zeebe_bpmn_rspec/activated_job_target"
 
 module ZeebeBpmnRspec
   module Helpers # rubocop:disable Metrics/ModuleLength
@@ -90,7 +91,7 @@ module ZeebeBpmnRspec
 
     # TODO: better way to handle this!
     def job_with_type(type)
-      activate_job(type)
+      ActivatedJobTarget.new(type, activate_job(type))
     rescue StandardError => e
       if e.message.match?(/^No job with type/)
         nil
@@ -99,13 +100,17 @@ module ZeebeBpmnRspec
       end
     end
 
+    def expect_job_of_type(type)
+      expect(job_with_type(type))
+    end
+
     def activate_jobs(type, max_jobs: nil)
       stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
         type: type,
         worker: "#{type}-#{SecureRandom.hex}",
         maxJobsToActivate: max_jobs,
-        timeout: 5000, # TODO: configure
-        requestTimeout: 5000,
+        timeout: 1000,
+        requestTimeout: ZeebeBpmnRspec.activate_request_timeout,
       }.compact))
 
       Enumerator.new do |yielder|

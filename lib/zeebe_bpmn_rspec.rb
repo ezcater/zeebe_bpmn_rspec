@@ -4,12 +4,12 @@ require "rspec"
 require "zeebe/client"
 require "zeebe_bpmn_rspec/helpers"
 require "zeebe_bpmn_rspec/version"
-require "zeebe_bpmn_rspec/be_activated_matcher"
+require "zeebe_bpmn_rspec/matchers/have_activated_matcher"
 
 # Top-level gem module
 module ZeebeBpmnRspec
   class << self
-    attr_writer :client, :zeebe_address
+    attr_writer :client, :zeebe_address, :activate_request_timeout
 
     def configure
       yield(self)
@@ -23,6 +23,10 @@ module ZeebeBpmnRspec
 
     def zeebe_address
       @zeebe_address || ENV["ZEEBE_ADDRESS"] || (raise "zeebe_address must be set")
+    end
+
+    def activate_request_timeout
+      @activate_request_timeout || 1000
     end
   end
 end
