@@ -19,9 +19,7 @@ module ZeebeBpmnRspec
     end
 
     def respond_to_missing?(name, include_all = true)
-      ActivatedJob.instance_methods.include?(name)
-
-      super
+      ActivatedJob.instance_methods.include?(name) || super
     end
   end
 end
