@@ -8,7 +8,7 @@ RSpec::Matchers.define :have_headers do
   end
 
   failure_message do |_actual|
-    "expected that #{@job} would have headers #{expected}"
+    "expected that job:\n  #{@job}\n\nwould have headers #{expected}"
   end
 
   diffable

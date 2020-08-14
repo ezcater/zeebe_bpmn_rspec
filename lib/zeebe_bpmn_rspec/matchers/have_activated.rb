@@ -11,14 +11,22 @@ module ZeebeBpmnRspec
   end
 end
 
-RSpec::Matchers.define :have_activated do # rubocop:disable Metrics/BlockLength
+# rubocop:disable Metrics/BlockLength
+RSpec::Matchers.define :have_activated do
   match do |job|
     @job = job
 
     @matcher_error = nil
     begin
-      aggregate_failures "expected activated job#{of_type(job)}" do
-        raise RSpec::Expectations::ExpectationNotMetError.new("expected activated job#{of_type(job)}") if job.nil?
+      aggregate_failures "activated job#{of_type(job)}" do
+        unless job.is_a?(ZeebeBpmnRspec::ActivatedJob)
+          raise ArgumentError.new("expectation target must be a "\
+                                  "#{ZeebeBpmnRspec::ActivatedJob.name}, got #{job.inspect}")
+        end
+
+        if job.raw.nil?
+          raise RSpec::Expectations::ExpectationNotMetError.new("expected activated job#{of_type(job)}, got nil")
+        end
 
         expect(job).to have_variables(@variables) if @variables
         expect(job).to have_headers(@headers) if @headers
@@ -88,3 +96,4 @@ RSpec::Matchers.define :have_activated do # rubocop:disable Metrics/BlockLength
     @throw = true
   end
 end
+# rubocop:enable Metrics/BlockLength

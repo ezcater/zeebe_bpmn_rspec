@@ -22,6 +22,12 @@ RSpec.describe "Matchers" do # rubocop:disable RSpec/DescribeClass
     end.to raise_error(RSpec::Expectations::ExpectationNotMetError, /expected activated job/)
   end
 
+  it "errors if the expectation target is not an ActivatedJob" do
+    expect do
+      expect("foostring").to have_activated
+    end.to raise_error(ArgumentError, /expectation target must be a ZeebeBpmnRspec::ActivatedJob/)
+  end
+
   it "can check the variables for a job" do
     expect_job_of_type("do_something").to have_activated.with_variables(start_variables)
   end
@@ -48,7 +54,7 @@ RSpec.describe "Matchers" do # rubocop:disable RSpec/DescribeClass
       expect_job_of_type("do_something").to have_activated.
         with_variables(c: 1).
         with_headers(what_to_do: "something")
-    end.to raise_error(RSpec::Expectations::MultipleExpectationsNotMetError, /expected activated job/)
+    end.to raise_error(RSpec::Expectations::MultipleExpectationsNotMetError, /activated job of type/)
   end
 
   it "can complete a job" do

@@ -10,23 +10,33 @@ module ZeebeBpmnRspec
 
     attr_reader :job, :type, :workflow_instance_key
 
-    def initialize(job, type:, workflow_instance_key:, client:, context:)
+    def initialize(job, type:, workflow_instance_key:, client:, context:, validate:) # rubocop:disable Metrics/ParameterLists
       @job = job
       @type = type
       @workflow_instance_key = workflow_instance_key
       @client = client
       @context = context
 
-      context.instance_eval do
-        aggregate_failures do
-          expect(job.workflowInstanceKey).to eq(workflow_instance_key)
-          expect(job.type).to eq(type)
+      if validate
+        context.instance_eval do
+          aggregate_failures do
+            expect(job.workflowInstanceKey).to eq(workflow_instance_key)
+            expect(job.type).to eq(type)
+          end
         end
       end
     end
 
+    def raw
+      job
+    end
+
     def key
       job.key
+    end
+
+    def to_s
+      raw.to_s
     end
 
     def variables

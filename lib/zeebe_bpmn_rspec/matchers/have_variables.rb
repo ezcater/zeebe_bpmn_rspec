@@ -8,7 +8,7 @@ RSpec::Matchers.define :have_variables do |expected|
   end
 
   failure_message do |_actual|
-    "expected that #{@job} would have variables #{expected}"
+    "expected that job:\n  #{@job}\n\nwould have variables #{expected}"
   end
 
   diffable
