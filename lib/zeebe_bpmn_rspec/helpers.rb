@@ -64,7 +64,7 @@ module ZeebeBpmnRspec
       @__workflow_instance_key
     end
 
-    def activate_job(type)
+    def activate_job(type, validate: true)
       stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new(
                                              type: type,
                                              worker: "#{type}-#{SecureRandom.hex}",
@@ -75,26 +75,33 @@ module ZeebeBpmnRspec
 
       job = nil
       stream.find { |response| job = response.jobs.first }
-      raise "No job with type #{type.inspect} found" if job.nil?
-
       # puts job.inspect # support debug logging?
 
       ActivatedJob.new(job,
                        type: type,
                        workflow_instance_key: workflow_instance_key,
                        client: _zeebe_client,
-                       context: self)
+                       context: self,
+                       validate: validate)
     end
     alias process_job activate_job
     # TODO: deprecate process_job
+
+    def job_with_type(type)
+      activate_job(type, validate: false)
+    end
+
+    def expect_job_of_type(type)
+      expect(job_with_type(type))
+    end
 
     def activate_jobs(type, max_jobs: nil)
       stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
         type: type,
         worker: "#{type}-#{SecureRandom.hex}",
         maxJobsToActivate: max_jobs,
-        timeout: 5000, # TODO: configure
-        requestTimeout: 5000,
+        timeout: 1000,
+        requestTimeout: ZeebeBpmnRspec.activate_request_timeout,
       }.compact))
 
       Enumerator.new do |yielder|
@@ -104,7 +111,8 @@ module ZeebeBpmnRspec
                                         type: type,
                                         workflow_instance_key: workflow_instance_key,
                                         client: _zeebe_client,
-                                        context: self)
+                                        context: self,
+                                        validate: true)
           end
         end
       end

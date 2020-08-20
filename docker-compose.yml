@@ -18,7 +18,7 @@ x-service: &default-service
   stdin_open: true
 services:
   zeebe:
-    image: camunda/zeebe:0.23.4
+    image: camunda/zeebe:${ZEEBE_VERSION:-0.24.1}
     environment:
       ZEEBE_LOG_LEVEL: debug
     volumes:

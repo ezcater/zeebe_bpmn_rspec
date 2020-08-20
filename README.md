@@ -39,6 +39,8 @@ end
 
 The gem adds the following helper methods to RSpec.
 
+The gem also defines [Custom Matchers](#custom-matchers).
+
 ### Deploy Workflow
 
 The `deploy_workflow` method requires a path to a BPMN file and deploys it to Zeebe. There is no support for
@@ -215,6 +217,100 @@ Variables can also be sent with a message:
 ```ruby
 publish_message("message_name", correlation_key: expected_value,
                 variables: { foo: "bar" })
+```
+
+### Custom Matchers
+
+In addition to the helpers documented above, this gem defines custom RSpec matchers to provide a more typical
+experience of expectations and matchers.
+
+#### expect_job_of_type
+
+The `expect_job_of_type` helper is a convenient wrapper to activate a job and set an expectation target.
+
+```ruby
+expect_job_of_type("my_type")
+```
+
+Similar to the `activate_job` helper, it activates a job and wraps the result in an `ActivatedJob` object.
+That object is then passed to `expect()`. Unlike `activate_job`, this helper does not raise if there is no job activated.
+
+This is equivalent to `expect(job_with_type("my_type")` or `expect(activate_job("my_type", validate: false))`.
+
+`expect_job_of_type` is expected to be used with the matchers below.
+
+#### have_activated
+
+The `have_activated` matcher checks that the target represents an activated job. It will raise an error if no job
+was activated.
+
+```ruby
+expect_job_of_type("my_type").to have_activated
+```
+
+Various additional methods can be chained on the `have_activated` matcher.
+
+The `with_variables` method can be used to check the input variables that the job was activated with:
+
+```ruby
+expect_job_of_type("my_type").to have_activated.with_variables(user_id: 123)
+```
+
+The `with_headers` method can be used to check the headers that the job was activated with:
+
+```ruby
+expect_job_of_type("my_type").to have_activated.with_headers(id_type: "user")
+```
+
+The `with_variables` and `with_headers` methods can be chained on the same expectation:
+
+```ruby
+expect_job_of_type("my_type").to have_activated.
+                                   with_variables(user_id: 123).
+                                   with_headers(id_type: "user")
+```
+
+The matcher also supports methods to complete, fail, or throw an error for a job:
+
+```ruby
+# Complete
+expect_job_of_type("my_type").to have_activated.and_complete
+
+# Complete with new variables
+expect_job_of_type("my_type").to have_activated.and_complete(result_code: 456)
+
+# Fail (sets retries to 0 by default)
+expect_job_of_type("my_type").to have_activated.and_fail
+
+# Fail and specify retries
+expect_job_of_type("my_type").to have_activated.and_fail(retries: 1)
+
+# Fail with an error message
+expect_job_of_type("my_type").to have_activated.and_fail("boom!")
+
+# Fail with an error message and specify retries
+expect_job_of_type("my_type").to have_activated.and_fail("boom!", retries: 2)
+
+# Throw an error (error code is required)
+expect_job_of_type("my_type").to have_activated.and_throw_error("MY_ERROR")
+
+# Throw an error with an error message
+expect_job_of_type("my_type").to have_activated.and_throw_error("MY_ERROR", "went horribly wrong")
+```
+
+Only one of `and_complete`, `and_fail`, or `and_throw_error` can be specified for a single expectation.
+
+#### have_variables and have_headers
+
+In addition to the `with_variables` and `with_headers` methods that can be chained onto the `have_activated`
+matcher, there are matchers that can be used directly to set expectations on the variables or
+headers for an `ActivatedJob`.
+
+```ruby
+job = activate_job("my_type")
+
+expect(job).to have_variables(user: 123)
+expect(job).to have_headers(id_type: "user")
 ```
 
 ## Tips & Tricks
