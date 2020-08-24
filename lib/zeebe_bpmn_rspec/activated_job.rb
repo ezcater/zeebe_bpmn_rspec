@@ -19,6 +19,7 @@ module ZeebeBpmnRspec
 
       if validate
         context.instance_eval do
+          expect(job).not_to be_nil, "expected to receive job of type '#{type}' but received none"
           aggregate_failures do
             expect(job.workflowInstanceKey).to eq(workflow_instance_key)
             expect(job.type).to eq(type)

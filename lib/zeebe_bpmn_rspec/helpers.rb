@@ -69,8 +69,8 @@ module ZeebeBpmnRspec
                                              type: type,
                                              worker: "#{type}-#{SecureRandom.hex}",
                                              maxJobsToActivate: 1,
-                                             timeout: 5000, # TODO: configure
-                                             requestTimeout: 5000
+                                             timeout: 1000,
+                                             requestTimeout: ZeebeBpmnRspec.activate_request_timeout
                                            ))
 
       job = nil
