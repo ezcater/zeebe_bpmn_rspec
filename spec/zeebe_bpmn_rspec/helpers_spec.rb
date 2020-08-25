@@ -67,6 +67,18 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
         expect(job.headers).to eq("what_to_do" => "nothing")
       end
     end
+
+    it "times out after the globally configured time" do
+      allow(ZeebeBpmnRspec).to receive(:activate_request_timeout).and_return(100) # ms
+      with_workflow_instance("one_task", { input: 1 }) do
+        t1 = Time.now
+        job = activate_job("do_nothing", validate: false)
+        t2 = Time.now
+
+        expect(job.job).to be_nil
+        expect(t2 - t1).to be < 0.5 # much less than the default value of 1 second
+      end
+    end
   end
 
   describe "ActivatedJob#expect_input" do
