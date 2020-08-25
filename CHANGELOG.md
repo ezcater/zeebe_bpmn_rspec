@@ -1,5 +1,9 @@
 # zeebe_bpmn_rspec
 
+## v0.3.1
+- Use consistent activate request timeout.
+- Provide a better error when a job is not activated.
+
 ## v0.3.0
 - Add custom matchers, `have_variables`, `have_headers`, and `have_activated`.
 
