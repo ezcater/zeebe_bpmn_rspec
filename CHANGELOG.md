@@ -1,5 +1,8 @@
 # zeebe_bpmn_rspec
 
+## v0.4.0 (unreleased)
+- Add `ttl_ms` option for `publish_message`.
+
 ## v0.3.1
 - Use consistent activate request timeout.
 - Provide a better error when a job is not activated.

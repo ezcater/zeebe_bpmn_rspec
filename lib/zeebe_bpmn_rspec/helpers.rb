@@ -118,12 +118,12 @@ module ZeebeBpmnRspec
       end
     end
 
-    def publish_message(name, correlation_key:, variables: nil)
+    def publish_message(name, correlation_key:, variables: nil, ttl_ms: 5000)
       _zeebe_client.publish_message(PublishMessageRequest.new(
                                       {
                                         name: name,
                                         correlationKey: correlation_key,
-                                        timeToLive: 5000,
+                                        timeToLive: ttl_ms,
                                         variables: variables&.to_json,
                                       }.compact
                                     ))

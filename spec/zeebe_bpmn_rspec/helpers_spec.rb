@@ -199,5 +199,13 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
         workflow_complete!
       end
     end
+
+    it "can publish a message with a ttl" do
+      with_workflow_instance("message_receive", expected_message_key: (key = SecureRandom.uuid)) do
+        publish_message("expected_message", correlation_key: key, ttl_ms: 1000)
+
+        workflow_complete!
+      end
+    end
   end
 end
