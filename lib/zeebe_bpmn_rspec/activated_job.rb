@@ -36,6 +36,10 @@ module ZeebeBpmnRspec
       job.key
     end
 
+    def retries
+      job.retries
+    end
+
     def to_s
       raw.to_s
     end
@@ -97,6 +101,13 @@ module ZeebeBpmnRspec
                           ))
     end
     alias complete and_complete
+
+    def update_retries(retries = 1)
+      client.update_job_retries(UpdateJobRetriesRequest.new(
+                                  jobKey: job.key,
+                                  retries: retries
+                                ))
+    end
 
     private
 
