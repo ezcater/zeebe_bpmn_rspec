@@ -157,6 +157,16 @@ job = activate_job("my_job")
 job.fail(retries: 1)
 ```
 
+#### Update Retries
+
+The retries for a job can also be modified using the `update_retries` method:
+
+```ruby
+job = activate_job("my_job")
+
+job.update_retries(3)
+```
+
 #### Throw Error
 
 The `and_throw_error` (also aliased as `throw_error`) method can be used to throw an error for a job. The error code is required and an

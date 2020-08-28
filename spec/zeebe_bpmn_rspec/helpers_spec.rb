@@ -145,6 +145,23 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
     end
   end
 
+  describe "ActivatedJob#update_retries" do
+    it "can update the retries for a job" do
+      with_workflow_instance("one_task") do
+        job = job_with_type("do_something")
+        job.fail(retries: 1)
+
+        job.update_retries(3)
+
+        new_job = job_with_type("do_something")
+        expect(new_job.retries).to eq(3)
+        new_job.complete
+
+        workflow_complete!
+      end
+    end
+  end
+
   describe "ActivatedJob#and_throw_error" do
     it "can throw an error for a job" do
       with_workflow_instance("one_task") do
