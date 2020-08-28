@@ -40,6 +40,10 @@ module ZeebeBpmnRspec
       job.retries
     end
 
+    def task_key
+      job.elementInstanceKey
+    end
+
     def to_s
       raw.to_s
     end

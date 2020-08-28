@@ -225,4 +225,55 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
       end
     end
   end
+
+  describe "#set_variables" do
+    it "sets variables for a workflow" do
+      with_workflow_instance("one_task", var: "initial") do
+        set_variables(workflow_instance_key, { var: "updated", new: 1 })
+
+        expect(job_with_type("do_something")).to have_activated.
+          with_variables(var: "updated", new: 1).and_complete
+
+        workflow_complete!
+      end
+    end
+
+    context "task scope" do
+      let(:bpmn_name) { "two_tasks" }
+
+      it "can set variables for a task" do
+        with_workflow_instance(bpmn_name, var: "initial") do
+          job = job_with_type("do_something")
+          job.fail(retries: 1)
+
+          set_variables(job.task_key, { var: "updated", new: 1 })
+
+          expect(job_with_type("do_something")).to have_activated.
+            with_variables(var: "updated", new: 1).and_complete
+
+          expect(job_with_type("next_step")).to have_activated.
+            with_variables(var: "initial").and_complete
+
+          workflow_complete!
+        end
+      end
+
+      it "can set variables with non-local scope" do
+        with_workflow_instance(bpmn_name, var: "initial") do
+          job = job_with_type("do_something")
+          job.fail(retries: 1)
+
+          set_variables(job.task_key, { var: "updated", new: 1 }, local: false)
+
+          expect(job_with_type("do_something")).to have_activated.
+            with_variables(var: "updated", new: 1).and_complete
+
+          expect(job_with_type("next_step")).to have_activated.
+            with_variables(var: "updated", new: 1).and_complete
+
+          workflow_complete!
+        end
+      end
+    end
+  end
 end

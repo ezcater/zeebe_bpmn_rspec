@@ -236,6 +236,30 @@ It defaults to 5000 milliseconds if unspecified.
 publish_message("message_name", correlation_key: expected_value, ttl_ms: 1000)
 ```
 
+### Set Variables
+
+The `set_variables` method can be used to set variables for a specified
+scope in Zeebe:
+
+```ruby
+# workflow_instance_key is a method that returns the key for the current workflow instance
+set_variables(workflow_instance_key, { foo: "bar" })
+```
+
+An activated job can be used to determine the key for the task that it is associated with:
+
+```ruby
+job = job_with_type("my_type")
+set_variables(job.task_key, { foo: "baz"})
+```
+
+Variables default to being local to the scope on which they are set. This
+can be overridden by specifying the `:local` option:
+
+```ruby
+set_variables(job.task_key, { foo: "baz"}, local: false)
+```
+
 ### Custom Matchers
 
 In addition to the helpers documented above, this gem defines custom RSpec matchers to provide a more typical
