@@ -79,6 +79,30 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
         expect(t2 - t1).to be < 0.5 # much less than the default value of 1 second
       end
     end
+
+    it "can activate a job with specific variables" do
+      with_workflow_instance("one_task", { a: 1, b: 2 }) do
+        job = activate_job("do_something", fetch_variables: :a)
+
+        expect(job).to have_variables("a" => 1)
+      end
+    end
+
+    it "can activate a job with a missing variable" do
+      with_workflow_instance("one_task", { a: 1, b: 2 }) do
+        job = activate_job("do_something", fetch_variables: "c")
+
+        expect(job).to have_variables({})
+      end
+    end
+
+    it "can activate a job with multiple variables" do
+      with_workflow_instance("one_task", { a: 1, b: 2, c: 3 }) do
+        job = activate_job("do_something", fetch_variables: %w(b c))
+
+        expect(job).to have_variables("b" => 2, "c" => 3)
+      end
+    end
   end
 
   describe "ActivatedJob#expect_input" do
@@ -202,6 +226,16 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
         jobs.map(&:complete)
 
         workflow_complete!
+      end
+    end
+
+    it "can activate jobs with specific variables" do
+      with_workflow_instance("parallel_tasks", { a: 1, b: 2, c: 3 }) do
+        activate_job("do_something").and_complete
+
+        jobs = activate_jobs("parallel", fetch_variables: %i(a b), max_jobs: 2).to_a
+
+        expect(jobs).to all(have_variables("a" => 1, "b" => 2))
       end
     end
   end

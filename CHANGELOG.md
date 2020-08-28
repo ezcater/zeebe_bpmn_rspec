@@ -4,6 +4,7 @@
 - Add `ttl_ms` option for `publish_message`.
 - Add `update_retries` method to `ActivatedJob` class.
 - Add `set_variables` helper.
+- Add support for `:fetch_variables` option when activating jobs.
 
 ## v0.3.1
 - Use consistent activate request timeout.

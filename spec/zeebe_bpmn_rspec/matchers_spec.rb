@@ -32,6 +32,11 @@ RSpec.describe "Matchers" do # rubocop:disable RSpec/DescribeClass
     expect_job_of_type("do_something").to have_activated.with_variables(start_variables)
   end
 
+  it "can activate a job with specific variables and check them" do
+    expect_job_of_type("do_something", fetch_variables: :a).
+      to have_activated.with_variables("a" => 99)
+  end
+
   it "fails if the variables do not match the expected" do
     expect do
       expect_job_of_type("do_something").to have_activated.with_variables(c: 1)
