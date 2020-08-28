@@ -3,6 +3,7 @@
 ## v0.4.0 (unreleased)
 - Add `ttl_ms` option for `publish_message`.
 - Add `update_retries` method to `ActivatedJob` class.
+- Add `set_variables` helper.
 
 ## v0.3.1
 - Use consistent activate request timeout.

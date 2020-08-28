@@ -129,6 +129,14 @@ module ZeebeBpmnRspec
                                     ))
     end
 
+    def set_variables(key, variables, local: true)
+      _zeebe_client.set_variables(SetVariablesRequest.new(
+                                    elementInstanceKey: key,
+                                    variables: variables.to_json,
+                                    local: local
+                                  ))
+    end
+
     def reset_zeebe!
       @__workflow_instance_key = nil
     end
