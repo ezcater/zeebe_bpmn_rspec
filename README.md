@@ -219,6 +219,13 @@ publish_message("message_name", correlation_key: expected_value,
                 variables: { foo: "bar" })
 ```
 
+The time-to-live (in milliseconds) cna also be specified for a message.
+It defaults to 5000 milliseconds if unspecified.
+
+```ruby
+publish_message("message_name", correlation_key: expected_value, ttl_ms: 1000)
+```
+
 ### Custom Matchers
 
 In addition to the helpers documented above, this gem defines custom RSpec matchers to provide a more typical
