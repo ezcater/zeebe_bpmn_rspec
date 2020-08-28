@@ -64,14 +64,15 @@ module ZeebeBpmnRspec
       @__workflow_instance_key
     end
 
-    def activate_job(type, validate: true)
-      stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new(
-                                             type: type,
-                                             worker: "#{type}-#{SecureRandom.hex}",
-                                             maxJobsToActivate: 1,
-                                             timeout: 1000,
-                                             requestTimeout: ZeebeBpmnRspec.activate_request_timeout
-                                           ))
+    def activate_job(type, fetch_variables: nil, validate: true)
+      stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
+        type: type,
+        worker: "#{type}-#{SecureRandom.hex}",
+        maxJobsToActivate: 1,
+        timeout: 1000,
+        fetchVariable: fetch_variables&.then { |v| Array(v) },
+        requestTimeout: ZeebeBpmnRspec.activate_request_timeout,
+      }.compact))
 
       job = nil
       stream.find { |response| job = response.jobs.first }
@@ -87,20 +88,21 @@ module ZeebeBpmnRspec
     alias process_job activate_job
     # TODO: deprecate process_job
 
-    def job_with_type(type)
-      activate_job(type, validate: false)
+    def job_with_type(type, fetch_variables: nil)
+      activate_job(type, fetch_variables: fetch_variables, validate: false)
     end
 
-    def expect_job_of_type(type)
-      expect(job_with_type(type))
+    def expect_job_of_type(type, fetch_variables: nil)
+      expect(job_with_type(type, fetch_variables: fetch_variables))
     end
 
-    def activate_jobs(type, max_jobs: nil)
+    def activate_jobs(type, max_jobs: nil, fetch_variables: nil)
       stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
         type: type,
         worker: "#{type}-#{SecureRandom.hex}",
         maxJobsToActivate: max_jobs,
         timeout: 1000,
+        fetchVariable: fetch_variables&.then { |v| Array(v) },
         requestTimeout: ZeebeBpmnRspec.activate_request_timeout,
       }.compact))
 
