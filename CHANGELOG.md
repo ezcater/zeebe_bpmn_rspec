@@ -1,6 +1,6 @@
 # zeebe_bpmn_rspec
 
-## v0.4.0 (unreleased)
+## v0.4.0
 - Add `ttl_ms` option for `publish_message`.
 - Add `update_retries` method to `ActivatedJob` class.
 - Add `set_variables` helper.
