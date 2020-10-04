@@ -1,5 +1,10 @@
 # zeebe_bpmn_rspec
 
+## v0.4.1
+- Allow `with_workflow_instance` to be called without a block.
+- Allow `worker` to be specified when activating a job.
+- Expose `workflow_instance_key` for activated jobs.
+
 ## v0.4.0
 - Add `ttl_ms` option for `publish_message`.
 - Add `update_retries` method to `ActivatedJob` class.

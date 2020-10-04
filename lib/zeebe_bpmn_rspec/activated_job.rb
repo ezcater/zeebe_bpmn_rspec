@@ -8,7 +8,7 @@ module ZeebeBpmnRspec
   class ActivatedJob
     include ::Zeebe::Client::GatewayProtocol # for direct reference of request classes
 
-    attr_reader :job, :type, :workflow_instance_key
+    attr_reader :job, :type
 
     def initialize(job, type:, workflow_instance_key:, client:, context:, validate:) # rubocop:disable Metrics/ParameterLists
       @job = job
@@ -34,6 +34,10 @@ module ZeebeBpmnRspec
 
     def key
       job.key
+    end
+
+    def workflow_instance_key
+      job.workflowInstanceKey
     end
 
     def retries
