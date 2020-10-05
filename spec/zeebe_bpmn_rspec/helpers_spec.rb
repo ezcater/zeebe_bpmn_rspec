@@ -46,6 +46,12 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
 
       expect(key).to eq(workflow_instance_key)
     end
+
+    it "can start and stop a workflow without requiring a block" do
+      expect do
+        with_workflow_instance("one_task")
+      end.not_to raise_error
+    end
   end
 
   describe "#workflow_complete!" do
@@ -65,6 +71,23 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
 
         expect(job.variables).to eq("input" => 1)
         expect(job.headers).to eq("what_to_do" => "nothing")
+      end
+    end
+
+    it "can activate a job with a specific worker" do
+      with_workflow_instance("one_task") do
+        worker = "my-worker-#{SecureRandom.hex}"
+        job = activate_job("do_something", worker: worker)
+
+        expect(job.raw.worker).to eq(worker)
+      end
+    end
+
+    it "allows a job to be activated with a nil worker" do
+      with_workflow_instance("one_task") do
+        job = activate_job("do_something", worker: nil, validate: false)
+
+        expect(job.raw).to be_nil
       end
     end
 
@@ -101,6 +124,16 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
         job = activate_job("do_something", fetch_variables: %w(b c))
 
         expect(job).to have_variables("b" => 2, "c" => 3)
+      end
+    end
+  end
+
+  describe "ActivatedJob#workflow_instance_key" do
+    it "exposes the workflow instance key for a job" do
+      with_workflow_instance("one_task") do
+        job = activate_job("do_something")
+
+        expect(job.workflow_instance_key).to eq(workflow_instance_key)
       end
     end
   end

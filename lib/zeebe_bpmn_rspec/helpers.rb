@@ -26,7 +26,7 @@ module ZeebeBpmnRspec
                                                           variables: variables.to_json
                                                         ))
       @__workflow_instance_key = workflow.workflowInstanceKey
-      yield(workflow.workflowInstanceKey)
+      yield(workflow.workflowInstanceKey) if block_given?
     rescue Exception => e # rubocop:disable Lint/RescueException
       # exceptions are rescued to ensure that instances are cancelled
       # any error is re-raised below
@@ -64,10 +64,10 @@ module ZeebeBpmnRspec
       @__workflow_instance_key
     end
 
-    def activate_job(type, fetch_variables: nil, validate: true)
+    def activate_job(type, fetch_variables: nil, validate: true, worker: "#{type}-#{SecureRandom.hex}")
       stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
         type: type,
-        worker: "#{type}-#{SecureRandom.hex}",
+        worker: worker,
         maxJobsToActivate: 1,
         timeout: 1000,
         fetchVariable: fetch_variables&.then { |v| Array(v) },
