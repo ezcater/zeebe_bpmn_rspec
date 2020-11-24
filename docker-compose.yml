@@ -18,7 +18,7 @@ x-service: &default-service
   stdin_open: true
 services:
   zeebe:
-    image: camunda/zeebe:${ZEEBE_VERSION:-0.24.1}
+    image: camunda/zeebe:${ZEEBE_VERSION:-0.25.1}
     environment:
       ZEEBE_LOG_LEVEL: debug
     volumes:
@@ -26,7 +26,7 @@ services:
       - ./compose/application.yml:/usr/local/zeebe/config/application.yaml
 
   monitor:
-    image: camunda/zeebe-simple-monitor:0.19.0
+    image: camunda/zeebe-simple-monitor:0.19.1
     environment:
       - zeebe.client.broker.contactPoint=zeebe:26500
       - zeebe.client.worker.hazelcast.connection=zeebe:5701
