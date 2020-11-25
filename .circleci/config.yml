@@ -7,7 +7,7 @@ jobs:
       - image: circleci/ruby:2.6.6
         environment:
           - ZEEBE_ADDRESS: localhost:26500
-      - image: camunda/zeebe:0.23.2
+      - image: camunda/zeebe:0.25.1
     steps:
       - checkout
 
