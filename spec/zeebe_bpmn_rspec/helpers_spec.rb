@@ -83,12 +83,24 @@ RSpec.describe ZeebeBpmnRspec::Helpers do
       end
     end
 
-    it "allows a job to be activated with a nil worker" do
-      with_workflow_instance("one_task") do
-        job = activate_job("do_something", worker: nil, validate: false)
+    it "does not allow a job to be activated with a nil worker" do
+      expect do
+        with_workflow_instance("one_task") do
+          job = activate_job("do_something", worker: nil, validate: false)
 
-        expect(job.raw).to be_nil
-      end
+          expect(job.raw).to be_nil
+        end
+      end.to raise_error(ArgumentError, "'worker' cannot be blank")
+    end
+
+    it "does not allow a job to be activated with a blank worker" do
+      expect do
+        with_workflow_instance("one_task") do
+          job = activate_job("do_something", worker: "", validate: false)
+
+          expect(job.raw).to be_nil
+        end
+      end.to raise_error(ArgumentError, "'worker' cannot be blank")
     end
 
     it "times out after the globally configured time" do

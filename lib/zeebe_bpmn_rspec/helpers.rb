@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/blank"
 require "zeebe_bpmn_rspec/activated_job"
 
 module ZeebeBpmnRspec
@@ -65,6 +66,8 @@ module ZeebeBpmnRspec
     end
 
     def activate_job(type, fetch_variables: nil, validate: true, worker: "#{type}-#{SecureRandom.hex}")
+      raise ArgumentError.new("'worker' cannot be blank") if worker.blank?
+
       stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
         type: type,
         worker: worker,

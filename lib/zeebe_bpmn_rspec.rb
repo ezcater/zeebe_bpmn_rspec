@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support"
 require "rspec"
 require "zeebe/client"
 require "zeebe_bpmn_rspec/helpers"

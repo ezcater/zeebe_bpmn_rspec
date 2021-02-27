@@ -8,7 +8,7 @@ x-environment: &default-environment
   BUNDLE_DISABLE_SHARED_GEMS: "true"
   ZEEBE_ADDRESS: zeebe:26500
 x-service: &default-service
-  image: ruby:2.6.6
+  image: ruby:2.7.2
   volumes:
     - .:/usr/src/gem
     - ./compose/entrypoint.sh:/tmp/entrypoint.sh
@@ -18,7 +18,7 @@ x-service: &default-service
   stdin_open: true
 services:
   zeebe:
-    image: camunda/zeebe:${ZEEBE_VERSION:-0.25.1}
+    image: camunda/zeebe:${ZEEBE_VERSION:-0.26.1}
     environment:
       ZEEBE_LOG_LEVEL: debug
     volumes:
