@@ -1,5 +1,10 @@
 # zeebe_bpmn_rspec
 
+## v0.5.0 (unreleased)
+- Require Ruby 2.6 or later.
+- Require `worker` to be specified when activating a job. This argument is
+  defaulted but can no longer be specified as blank.
+
 ## v0.4.1
 - Allow `with_workflow_instance` to be called without a block.
 - Allow `worker` to be specified when activating a job.
