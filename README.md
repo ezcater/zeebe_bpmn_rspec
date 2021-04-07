@@ -4,6 +4,7 @@
 
 [![](https://img.shields.io/badge/Lifecycle-Stable-brightgreen)](https://github.com/Camunda-Community-Hub/community/blob/main/extension-lifecycle.md#stable-) 
 [![License](https://img.shields.io/badge/License-MIT-green)](https://opensource.org/licenses/MIT)
+[![<ezcater>](https://circleci.com/gh/ezcater/zeebe_bpmn_rspec.svg?style=shield)](https://app.circleci.com/pipelines/github/ezcater/zeebe_bpmn_rspec)
 
 This gem provides support for testing BPMN files using RSpec with the Zeebe workflow engine.
 
@@ -377,6 +378,10 @@ The current gem and approach have some limitations:
 
 1. You can interact with only one workflow at a time.
 
+## Troubleshooting
+
+The Directly Responsible Individual (DRI) for this library is @tjwp. If you have questions about the gem or run into problems, you are encourage to file a Github Issue.
+
 ## Development
 
 This repo contains a docker-compose file that starts Zeebe and can be used for
@@ -399,7 +404,7 @@ docker-compose run --rm console rspec
 
 To install this gem onto your local machine, run `bundle exec rake install`. 
 
-### Create a Release
+### Create a Release (for Maintainers)
 
 To release a new version, update the version number in `version.rb`, and then
 run `bundle exec rake release`, which will create a git tag for the version,
@@ -410,6 +415,11 @@ push git commits and tags, and push the `.gem` file to
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/ezcater/zeebe_bpmn_rspec.
+
+CI for this project runs on [CircleCi](https://app.circleci.com/pipelines/github/ezcater/zeebe_bpmn_rspec). 
+
+Pull requests should include good test coverage, and CI will be required to be passing before changes are merged.
+
 
 ## License
 
