@@ -30,7 +30,7 @@ Or install it yourself as:
 ## Configuration
 
 Either the address for the Zeebe workflow engine or a Zeebe client must be configured.
-`ZEEBE_ADDRESS` if used from the environment if this is not configured.
+`ZEEBE_ADDRESS` is used from the environment if this is not configured.
 
 ```ruby
 ZeebeBpmnRspec.configure do |config|
@@ -196,7 +196,7 @@ Multiple jobs can be activated using the `activate_jobs` method.
 activate_jobs("my_job")
 ```
 
-The call to `activate_jobs` returns an Enumerator that returns `ActivatedJob` instance.
+The call to `activate_jobs` returns an Enumerator that returns `ActivatedJob` instances.
 The maximum number of jobs to return can be specified:
 
 ```ruby
