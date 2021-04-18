@@ -1,5 +1,10 @@
 # zeebe_bpmn_rspec
 
+## v1.0.0 (unreleased)
+- Support Zeebe 1.0.0. Method names now use `process` instead of `workflow`
+  to match the renaming in Zeebe. Previous methods are deprecated and will be
+  removed in a future release.
+
 ## v0.5.0 (unreleased)
 - Require Ruby 2.6 or later.
 - Require `worker` to be specified when activating a job. This argument is

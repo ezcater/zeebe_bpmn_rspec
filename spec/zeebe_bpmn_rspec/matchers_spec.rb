@@ -6,8 +6,8 @@ RSpec.describe "Matchers" do # rubocop:disable RSpec/DescribeClass
   let(:start_variables) { { a: 99, b: "c" } }
 
   around do |example|
-    deploy_workflow(path)
-    with_workflow_instance(bpmn_name, start_variables) do
+    deploy_process(path)
+    with_process_instance(bpmn_name, start_variables) do
       example.run
     end
   end
@@ -65,7 +65,7 @@ RSpec.describe "Matchers" do # rubocop:disable RSpec/DescribeClass
   it "can complete a job" do
     expect_job_of_type("do_something").to have_activated.and_complete
 
-    workflow_complete!
+    process_complete!
   end
 
   context "when new variables are specified" do

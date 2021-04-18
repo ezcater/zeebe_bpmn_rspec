@@ -3,6 +3,7 @@
 require "active_support"
 require "rspec"
 require "zeebe/client"
+require "zeebe_bpmn_rspec/deprecate_workflow_alias"
 require "zeebe_bpmn_rspec/helpers"
 require "zeebe_bpmn_rspec/version"
 require "zeebe_bpmn_rspec/matchers/have_activated"

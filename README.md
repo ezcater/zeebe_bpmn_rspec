@@ -41,24 +41,24 @@ The gem adds the following helper methods to RSpec.
 
 The gem also defines [Custom Matchers](#custom-matchers).
 
-### Deploy Workflow
+### Deploy Process
 
-The `deploy_workflow` method requires a path to a BPMN file and deploys it to Zeebe. There is no support for
+The `deploy_process` (previously `deploy_workflow`) method requires a path to a BPMN file and deploys it to Zeebe. There is no support for
 removing a BPMN file once deployed, so this can be done once before the examples that use it.
 
 ```ruby
-before(:all) { deploy_workflow(filepath) }
+before(:all) { deploy_process(filepath) }
 ```
 
-A custom name can also be specified for the workflow:
+A custom name can also be specified for the process:
 
 ```ruby
-before(:all) { deploy_workflow(filepath, "custom_name") }
+before(:all) { deploy_process(filepath, "custom_name") }
 ```
 
-### With Workflow Instance
+### With Process Instance
 
-The `with_workflow_instance` method is used to create an instance for the specified workflow
+The `with_process_instance` (previously `with_workflow_instance`) method is used to create an instance for the specified process
 and then yields a block that can interact with the instance.
 
 This method ensures that an active instance is cancelled at the end of the block.
@@ -67,14 +67,14 @@ For testing BPMN files it is expected that most of the test definition will be w
 call to this method.
 
 ```ruby
-with_workflow_instance("file_basename") do
+with_process_instance("file_basename") do
   ...
 end
 ```
 
 ### Processing Jobs
 
-A single job can be processed for a workflow by calling `activate_job` (previously `process_job`).
+A single job can be processed for a process by calling `activate_job` (previously `process_job`).
 `activate_job` is called with a job type:
 
 ```ruby
@@ -129,8 +129,8 @@ activate_job("my_job").
   expect_input(user_id: 123).
   and_complete
 
-# Jobs can be completed with data that is merged with variables in the workflow
-project_job("my_job").
+# Jobs can be completed with data that is merged with variables in the process
+activate_job("my_job").
   and_complete(status: "ACTIVATED")
 ```
 
@@ -198,17 +198,17 @@ The maximum number of jobs to return can be specified:
 jobs = activate_jobs("my_job", max_jobs: 2).to_a
 ```
 
-### Workflow Complete
+### Process Complete
 
-The `workflow_complete!` method can be used to assert that the current workflow is complete at the end of a
-test. This is implemented by cancelling the workflow and checking for an error that it is already
+The `process_complete!` (previously `workflow_complete!`) method can be used to assert that the current process is complete at the end of a
+test. This is implemented by cancelling the process and checking for an error that it is already
 complete.
 
 ```ruby
-with_workflow_instance("file_basename") do
+with_process_instance("file_basename") do
   ...
 
-  workflow_complete!
+  process_complete!
 end
 ```
 
@@ -242,8 +242,8 @@ The `set_variables` method can be used to set variables for a specified
 scope in Zeebe:
 
 ```ruby
-# workflow_instance_key is a method that returns the key for the current workflow instance
-set_variables(workflow_instance_key, { foo: "bar" })
+# process_instance_key is a method that returns the key for the current process instance
+set_variables(process_instance_key, { foo: "bar" })
 ```
 
 An activated job can be used to determine the key for the task that it is associated with:
@@ -370,7 +370,7 @@ to specify a short duration.
 
 The current gem and approach have some limitations:
 
-1. You can interact with only one workflow at a time.
+1. You can interact with only one process at a time.
 
 ## Development
 

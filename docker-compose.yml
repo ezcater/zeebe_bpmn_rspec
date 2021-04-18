@@ -8,7 +8,7 @@ x-environment: &default-environment
   BUNDLE_DISABLE_SHARED_GEMS: "true"
   ZEEBE_ADDRESS: zeebe:26500
 x-service: &default-service
-  image: ruby:2.7.2
+  image: ruby:2.7.3
   volumes:
     - .:/usr/src/gem
     - ./compose/entrypoint.sh:/tmp/entrypoint.sh
@@ -18,22 +18,9 @@ x-service: &default-service
   stdin_open: true
 services:
   zeebe:
-    image: camunda/zeebe:${ZEEBE_VERSION:-0.26.1}
+    image: camunda/zeebe:${ZEEBE_VERSION:-1.0.0}
     environment:
       ZEEBE_LOG_LEVEL: debug
-    volumes:
-      - ./compose/zeebe-hazelcast-exporter.jar:/usr/local/zeebe/exporters/zeebe-hazelcast-exporter.jar
-      - ./compose/application.yml:/usr/local/zeebe/config/application.yaml
-
-  monitor:
-    image: camunda/zeebe-simple-monitor:0.19.1
-    environment:
-      - zeebe.client.broker.contactPoint=zeebe:26500
-      - zeebe.client.worker.hazelcast.connection=zeebe:5701
-    ports:
-      - "8082:8082"
-    depends_on:
-      - zeebe
 
   console:
     <<: *default-service
