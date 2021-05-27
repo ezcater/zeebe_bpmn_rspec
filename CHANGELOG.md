@@ -1,6 +1,6 @@
 # zeebe_bpmn_rspec
 
-## v0.5.0 (unreleased)
+## v0.5.0
 - Require Ruby 2.6 or later.
 - Require `worker` to be specified when activating a job. This argument is
   defaulted but can no longer be specified as blank.
