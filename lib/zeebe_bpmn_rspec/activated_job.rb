@@ -6,13 +6,14 @@ require "json"
 module ZeebeBpmnRspec
   class ActivatedJob
     include ::Zeebe::Client::GatewayProtocol # for direct reference of request classes
+    extend DeprecateWorkflowAlias
 
     attr_reader :job, :type
 
-    def initialize(job, type:, workflow_instance_key:, client:, context:, validate:) # rubocop:disable Metrics/ParameterLists
+    def initialize(job, type:, process_instance_key:, client:, context:, validate:) # rubocop:disable Metrics/ParameterLists
       @job = job
       @type = type
-      @workflow_instance_key = workflow_instance_key
+      @process_instance_key = process_instance_key
       @client = client
       @context = context
 
@@ -20,7 +21,7 @@ module ZeebeBpmnRspec
         context.instance_eval do
           expect(job).not_to be_nil, "expected to receive job of type '#{type}' but received none"
           aggregate_failures do
-            expect(job.workflowInstanceKey).to eq(workflow_instance_key)
+            expect(job.processInstanceKey).to eq(process_instance_key)
             expect(job.type).to eq(type)
           end
         end
@@ -35,9 +36,10 @@ module ZeebeBpmnRspec
       job.key
     end
 
-    def workflow_instance_key
-      job.workflowInstanceKey
+    def process_instance_key
+      job.processInstanceKey
     end
+    deprecate_workflow_alias :workflow_instance_key, :process_instance_key
 
     def retries
       job.retries

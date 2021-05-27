@@ -1,0 +1,17 @@
+version: "3.4"
+
+services:
+  zeebe:
+    volumes:
+      - ./compose/zeebe-hazelcast-exporter.jar:/usr/local/zeebe/exporters/zeebe-hazelcast-exporter.jar
+      - ./compose/application.yml:/usr/local/zeebe/config/application.yaml
+
+  monitor:
+    image: camunda/zeebe-simple-monitor:0.19.1
+    environment:
+      - zeebe.client.broker.contactPoint=zeebe:26500
+      - zeebe.client.worker.hazelcast.connection=zeebe:5701
+    ports:
+      - "8082:8082"
+    depends_on:
+      - zeebe
