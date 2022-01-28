@@ -52,5 +52,5 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "activesupport"
   spec.add_runtime_dependency "rspec", "~> 3.4"
-  spec.add_runtime_dependency "zeebe-client", "~> 0.14.0"
+  spec.add_runtime_dependency "zeebe-client", "~> 0.14"
 end
