@@ -1,5 +1,8 @@
 # zeebe_bpmn_rspec
 
+## v1.0.1
+- Fix dependency issue preventing use of zeebe-client versions 0.15 or above.
+
 ## v1.0.0
 - Support Zeebe 1.0.0. Method names now use `process` instead of `workflow`
   to match the renaming in Zeebe. Previous methods are deprecated and will be
