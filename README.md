@@ -84,6 +84,16 @@ activate_job("my_job")
 The call to `activate_job` returns a `ActivatedJob` object that provides a fluent interface to chain
 additional expectations and responses onto the job.
 
+#### Activating Jobs from Called Activities
+
+If a job was created by a called activity, its processInstanceKey won't match the parent process.
+To activate a called job without failing the processInstanceKey check, you can set the `called`
+argument to `true`:
+
+```ruby
+activate_job("my_job", called: true)
+```
+
 #### Expect Input
 
 To check the input variables that are passed to the job add `.expect_input`:
