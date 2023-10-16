@@ -10,7 +10,7 @@ module ZeebeBpmnRspec
 
     attr_reader :job, :type
 
-    def initialize(job, type:, process_instance_key:, client:, context:, validate:) # rubocop:disable Metrics/ParameterLists
+    def initialize(job, type:, process_instance_key:, client:, context:, validate:, called: false) # rubocop:disable Metrics/ParameterLists
       @job = job
       @type = type
       @process_instance_key = process_instance_key
@@ -21,8 +21,13 @@ module ZeebeBpmnRspec
         context.instance_eval do
           expect(job).not_to be_nil, "expected to receive job of type '#{type}' but received none"
           aggregate_failures do
-            expect(job.processInstanceKey).to eq(process_instance_key)
-            expect(job.type).to eq(type)
+            unless called
+              expect(job.processInstanceKey).
+                to eq(process_instance_key),
+                   "expected the job's processInstanceKey ('#{job.processInstanceKey}') to match "\
+                   "the process_instance_key ('#{process_instance_key}')"
+            end
+            expect(job.type).to eq(type), "expected job's type ('#{job.type}') to match the expected type ('#{type}')"
           end
         end
       end
