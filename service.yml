@@ -1,0 +1,5 @@
+name: zeebe_bpmn_rspec
+owner: orders-core-services
+skip_production_deploy: true
+
+tests: {}
