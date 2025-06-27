@@ -5,10 +5,13 @@ inherit_mode:
   merge:
   - Exclude
 
+plugins:
+  - rubocop-capybara
+
 RSpec/ExampleLength:
   Enabled: false
 
 AllCops:
-  TargetRubyVersion: 2.6
+  TargetRubyVersion: 3.2
   Exclude:
     - 'vendor/*'

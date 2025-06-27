@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Matchers" do # rubocop:disable RSpec/DescribeClass
+RSpec.describe "Matchers" do
   let(:path) { File.join(__dir__, "../fixtures/#{bpmn_name}.bpmn") }
   let(:bpmn_name) { "one_task" }
   let(:start_variables) { { a: 99, b: "c" } }

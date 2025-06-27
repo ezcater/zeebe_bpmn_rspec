@@ -20,8 +20,10 @@ RSpec::Matchers.define :have_activated do
     begin
       aggregate_failures "activated job#{of_type(job)}" do
         unless job.is_a?(ZeebeBpmnRspec::ActivatedJob)
+          # rubocop:todo Ezcater/RequireCustomError
           raise ArgumentError.new("expectation target must be a "\
                                   "#{ZeebeBpmnRspec::ActivatedJob.name}, got #{job.inspect}")
+          # rubocop:enable Ezcater/RequireCustomError
         end
 
         if job.raw.nil?

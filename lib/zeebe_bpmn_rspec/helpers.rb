@@ -70,7 +70,7 @@ module ZeebeBpmnRspec
     deprecate_workflow_alias :workflow_instance_key, :process_instance_key
 
     def activate_job(type, fetch_variables: nil, validate: true, worker: "#{type}-#{SecureRandom.hex}")
-      raise ArgumentError.new("'worker' cannot be blank") if worker.blank?
+      raise ArgumentError.new("'worker' cannot be blank") if worker.blank? # rubocop:todo Ezcater/RequireCustomError
 
       stream = _zeebe_client.activate_jobs(ActivateJobsRequest.new({
         type: type,

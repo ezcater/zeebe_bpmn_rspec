@@ -1,5 +1,8 @@
 # zeebe_bpmn_rspec
 
+## v x.x.x (Unreleased)
+- Drop support for Ruby < 3.2
+
 ## v1.0.1
 - Fix dependency issue preventing use of zeebe-client versions 0.15 or above.
 

@@ -41,10 +41,10 @@ Gem::Specification.new do |spec|
   spec.executables   = []
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = ">= 2.6"
+  spec.required_ruby_version = ">= 3.2"
 
-  spec.add_development_dependency "bundler", "~> 2.1"
-  spec.add_development_dependency "ezcater_rubocop", "2.0.0"
+  spec.add_development_dependency "bundler", "~> 2.6"
+  spec.add_development_dependency "ezcater_rubocop", "~> 9.0.0"
   spec.add_development_dependency "overcommit"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec_junit_formatter", "0.2.2"
