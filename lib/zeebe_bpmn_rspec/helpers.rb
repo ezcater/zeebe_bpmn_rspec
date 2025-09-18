@@ -93,7 +93,7 @@ module ZeebeBpmnRspec
                        validate: validate)
     end
     alias process_job activate_job
-    deprecate process_job: :activate_job
+    deprecate process_job: :activate_job, deprecator: DeprecateWorkflowAlias::AS_OF_VERSION_3
 
     def job_with_type(type, fetch_variables: nil)
       activate_job(type, fetch_variables: fetch_variables, validate: false)
