@@ -16,7 +16,7 @@ module ZeebeBpmnRspec
                                      )]
                                    ))
     rescue StandardError => e
-      raise "Failed to deploy precess: #{e}"
+      raise "Failed to deploy process: #{e}"
     end
     deprecate_workflow_alias :deploy_workflow, :deploy_process
 
