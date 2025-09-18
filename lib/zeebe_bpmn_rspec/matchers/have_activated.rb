@@ -80,7 +80,10 @@ RSpec::Matchers.define :have_activated do
     @complete = true
   end
 
-  chain :and_fail do |message = nil, retries: 0|
+  chain :and_fail do |*args|
+    message = args[0].is_a?(String) ? args[0] : nil
+    retries = args[-1].is_a?(Hash) ? args[-1][:retries] || 0 : 0
+
     check_predestined!
 
     @fail_message = message
