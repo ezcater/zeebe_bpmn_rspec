@@ -81,7 +81,7 @@ RSpec.describe "Matchers" do # rubocop:disable RSpec/DescribeClass
     end
   end
 
-  it "can fail a job" do
+  it "can fail a job without a message" do
     expect_job_of_type("do_something").to have_activated.
       and_fail(retries: 1)
 

@@ -41,16 +41,17 @@ Gem::Specification.new do |spec|
   spec.executables   = []
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = ">= 2.6"
+  spec.required_ruby_version = ">= 3.1"
 
-  spec.add_development_dependency "bundler", "~> 2.1"
-  spec.add_development_dependency "ezcater_rubocop", "2.0.0"
+  spec.add_development_dependency "bundler", ">= 2.5.18"
+  spec.add_development_dependency "ezcater_rubocop", "~> 8.0"
+  spec.add_development_dependency "mutex_m"
   spec.add_development_dependency "overcommit"
   spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rspec_junit_formatter", "0.2.2"
-  spec.add_development_dependency "simplecov", "< 0.18"
+  spec.add_development_dependency "rspec_junit_formatter"
+  spec.add_development_dependency "simplecov", "~> 0.17.0"
 
-  spec.add_runtime_dependency "activesupport"
+  spec.add_runtime_dependency "activesupport", ">= 6.1"
   spec.add_runtime_dependency "rspec", "~> 3.4"
   spec.add_runtime_dependency "zeebe-client", "~> 0.14"
 end

@@ -1,4 +1,6 @@
 # zeebe_bpmn_rspec
+## v2.0.0-dev
+- In progress.
 
 ## v1.0.1
 - Fix dependency issue preventing use of zeebe-client versions 0.15 or above.
