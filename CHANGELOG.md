@@ -1,5 +1,9 @@
 # zeebe_bpmn_rspec
 
+## unpublished
+- Add `called` option for `activate_job`.
+- Update the validation assertions in `activate_job` to have more helpful error messages.
+
 ## v1.0.1
 - Fix dependency issue preventing use of zeebe-client versions 0.15 or above.
 
